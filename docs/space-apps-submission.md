@@ -4,7 +4,7 @@
 **Team:** SUHAIL (فريق سهيل)
 **Challenge:** Build a Junior Astronaut Mission Trainer
 **Live project:** https://space-commander-theta.vercel.app
-**Repository:** _add GitHub link_
+**Repository:** https://github.com/mohmoedkh22-maker/space-commander
 
 ---
 

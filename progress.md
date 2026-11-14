@@ -18,6 +18,7 @@
 - Logo and SUHAIL are vector placeholders until the designer's approved files arrive (swap in `src/components/Brand.tsx` / `Suhail.tsx`)
 
 **Live:** https://space-commander-theta.vercel.app (Vercel project `space-commander`, team raqeeb). V0.2 was deployed on 2026-11-14.
+**Repo:** https://github.com/mohmoedkh22-maker/space-commander (public)
 Redeploy with: `npm run build`, then `cd out` and `npx vercel deploy --prod --yes --name space-commander`
 
 ## 2026-11-14 (Day 1)

@@ -4,6 +4,8 @@
 
 > Think like an astronaut. Lead like a commander.
 
+**▶ Play it live: https://space-commander-theta.vercel.app**
+
 SPACE COMMANDER is a bilingual (Arabic / English) web game for kids aged 9–12. The child commands the fictional
 lunar base **SELENE-1** near the Moon's south pole for seven days, guided by the robot **SUHAIL**. Power, water,
 oxygen and food are linked systems: a choice on Day 2 changes which options exist on Day 3 and Day 5. At the end, the
