@@ -9,6 +9,8 @@ import { useSettings } from "../settings";
 import { SuhailSays } from "../Suhail";
 import { Button, CrewSays, Panel, ScreenTitle } from "../ui";
 import type { LabResult } from "./WhatIfLab";
+import { missionResult } from "@/lib/game/consequences";
+import { WhyPanel } from "../mission/WhyPanel";
 
 export function OutcomeScreen({ ending, state, onLab }: { ending: EndingId; state: GameState; onLab: () => void }) {
   const { tx } = useSettings();
@@ -28,6 +30,7 @@ export function OutcomeScreen({ ending, state, onLab }: { ending: EndingId; stat
           <CrewSays who="layan" text={t("أنظمة دعم الحياة تعمل والطاقم آمن.", "Life support is running and the crew is safe.")} />
           <CrewSays who="rashed" text={t("اكتملت إجراءات السلامة.", "Safety procedures complete.")} />
           <SuhailSays mood={ending === "A" ? "happy" : "thinking"} text={e.suhail} />
+          <WhyPanel open reasons={missionResult(state).reasons} />
           <SuhailSays
             compact
             mood="curious"

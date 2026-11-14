@@ -9,6 +9,8 @@ import { useSettings } from "../settings";
 import { SuhailBot } from "../Suhail";
 import { Button, CrewSays, Panel } from "../ui";
 import { OptionArt } from "./OptionArt";
+import { WhyPanel } from "./WhyPanel";
+import { explainDay, guidanceFor } from "@/lib/game/consequences";
 import { ResourceIndicator } from "./ResourceIndicator";
 import { Stepper } from "./Stepper";
 
@@ -70,7 +72,7 @@ export function DecisionScreen({
       <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
         {/* Left: SUHAIL + investigation */}
         <aside className="flex flex-col gap-4">
-          <SuhailCorner mood="thinking" text={d.hint} />
+          <SuhailCorner mood="thinking" text={guidanceFor(id, state)} />
           <Panel className="!p-4">
             <h2 className="mb-2 font-display font-bold">📋 {tx(UI.reports)}</h2>
             <div className="flex flex-col gap-2">
@@ -224,6 +226,7 @@ export function ConsequenceScreen({ record, after, onNext }: { record: DecisionR
           </div>
 
           <CrewSays who={o.crew.who} text={o.crew.text} />
+          {log && <WhyPanel open items={explainDay(log, record.before, after)} />}
 
           {log && (
             <p className="text-center text-sm text-moon">

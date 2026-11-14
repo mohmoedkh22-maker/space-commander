@@ -9,14 +9,16 @@ import { FACILITIES, type FacilityId } from "@/lib/mission";
 export { FACILITIES, type FacilityId };
 export type Status = "ok" | "warn" | "crit" | "dim";
 
+/** Map highlight for each building, driven by the simulation's facility conditions and resources. */
 export function facilityStatus(s: GameState): Record<FacilityId, Status> {
   const bat = s.batteryKWh / BATTERY_CAP_KWH;
+  const f = s.facilities;
   return {
     energy: bat < 0.15 ? "crit" : bat < 0.4 ? "warn" : "ok",
-    life: s.oxygenPct < 90 ? "crit" : "ok",
-    greenhouse: s.policy.greenhouse === "full" ? "ok" : s.policy.greenhouse === "reduced" ? "warn" : "dim",
-    water: s.recyclerEfficiency < 0.8 ? "warn" : s.waterL < 200 ? "crit" : "ok",
-    shelter: s.flags.storm ? "warn" : "dim",
+    life: f.life === "strained" || s.oxygenPct < 90 ? "crit" : "ok",
+    greenhouse: f.greenhouse === "thriving" ? "ok" : f.greenhouse === "reduced" ? "warn" : "dim",
+    water: f.water === "faulty" ? "warn" : s.waterL < 200 ? "crit" : "ok",
+    shelter: f.shelter === "active" ? "warn" : "dim",
     command: "ok",
   };
 }

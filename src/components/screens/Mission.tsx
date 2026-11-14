@@ -5,6 +5,8 @@ import type { DayLog, DecisionRecord, GameState, T } from "@/lib/game/types";
 import { ILLUMINATION } from "@/lib/nasa/illumination";
 import { SCENARIO_LIGHT_FACTOR } from "@/lib/game/config";
 import { UI, t } from "@/lib/i18n";
+import { explainDay, guidanceFor } from "@/lib/game/consequences";
+import { WhyPanel } from "../mission/WhyPanel";
 import { LunarBase, facilityStatus } from "../LunarBase";
 import { useSettings } from "../settings";
 import { SuhailSays, type Mood } from "../Suhail";
@@ -159,6 +161,7 @@ export function DayScreen({ day, before, after, onNext }: { day: number; before:
         <div className="flex flex-col gap-4">
           {log && <DayResultCard log={log} />}
           {day > 1 && <DeltaTable before={before} after={after} />}
+          {log && day > 1 && <WhyPanel items={explainDay(log, before, after)} />}
           <SuhailSays mood={info.mood} text={info.suhail} />
           <Button onClick={onNext} autoFocus>
             {tx(UI.continue)}
@@ -171,7 +174,6 @@ export function DayScreen({ day, before, after, onNext }: { day: number; before:
 
 export function FaultEvent({ state, onNext }: { state: GameState; onNext: () => void }) {
   const { tx } = useSettings();
-  const lowPower = state.batteryKWh < 150;
   return (
     <main className="mx-auto max-w-5xl px-4 py-6">
       <ScreenTitle kicker={tx(MISSION_NAMES[2])} title={tx(t("تنبيه: نظام المياه", "ALERT: Water system"))} />
@@ -185,20 +187,7 @@ export function FaultEvent({ state, onNext }: { state: GameState; onNext: () => 
           {state.cropPct < 45 && (
             <CrewSays who="mira" text={t("المزرعة لم تصل بعد إلى مستوى النمو المخطط.", "The greenhouse hasn't reached its planned growth yet.")} />
           )}
-          <SuhailSays
-            mood="warning"
-            text={
-              lowPower
-                ? t(
-                    "مشكلة جديدة أيها القائد. واحتياطي البطارية محدود الآن — لن نستطيع زيادة تشغيل كل المعدات دون مراجعة الأنظمة الأخرى. هنا يظهر أثر قرارنا السابق.",
-                    "A new problem, Commander. And our battery reserve is limited now — we can't run every machine harder without checking other systems. Here's where our earlier decision shows up.",
-                  )
-                : t(
-                    "مشكلة جديدة أيها القائد. لدينا احتياطي كهرباء جيد، وهذا يمنحنا مساحة إضافية — لكنه لا يجعل الموارد غير محدودة.",
-                    "A new problem, Commander. We have a good power reserve, which gives us extra room — but it doesn't make resources unlimited.",
-                  )
-            }
-          />
+          <SuhailSays mood="warning" text={guidanceFor("evt-fault", state)} />
           <Button onClick={onNext} autoFocus>
             {tx(UI.continue)}
           </Button>

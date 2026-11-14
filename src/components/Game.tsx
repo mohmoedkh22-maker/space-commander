@@ -6,6 +6,7 @@ import { Toolbar } from "./Hud";
 import { LunarBaseScreen, MissionBriefing } from "./mission/MissionBriefing";
 import { MissionHUD } from "./mission/MissionHUD";
 import { CinematicIntro } from "./cinematic/CinematicIntro";
+import { PROGRESS_KEY, parseProgress, serializeProgress, type SavedProgress } from "@/lib/game/persistence";
 import { SettingsProvider, useSettings } from "./settings";
 import { Splash } from "./screens/Intro";
 import { DayScreen, FaultEvent, SafetyScreen, StormEvent } from "./screens/Mission";
@@ -41,6 +42,27 @@ function GameInner() {
     window.scrollTo({ top: 0 });
   }, [screen, stepIndex, consequence, science]);
 
+  // Optional session progress on this device (no accounts). Read once, write while playing.
+  const [saved, setSaved] = useState<SavedProgress | null>(null);
+  useEffect(() => {
+    try {
+      setSaved(parseProgress(localStorage.getItem(PROGRESS_KEY)));
+    } catch {}
+  }, []);
+  useEffect(() => {
+    if (screen === "splash" || screen === "intro" || screen === "briefing" || screen === "tour") return;
+    try {
+      localStorage.setItem(PROGRESS_KEY, serializeProgress(choices, stepIndex));
+    } catch {}
+  }, [screen, choices, stepIndex]);
+  const clearProgress = () => {
+    try {
+      localStorage.removeItem(PROGRESS_KEY);
+    } catch {}
+    setSaved(null);
+  };
+  const savedDay = saved ? Math.min(simulate(saved.choices, saved.stepIndex).state.day, 7) : 0;
+
   const advance = (k = 1) => {
     const n = stepIndex + k;
     if (n >= STEPS.length) {
@@ -50,6 +72,7 @@ function GameInner() {
   };
 
   const restart = () => {
+    clearProgress();
     setChoices({});
     setStepIndex(0);
     setConsequence(null);
@@ -62,7 +85,23 @@ function GameInner() {
     return (
       <Splash
         // First visit: the cinematic. Returning players go straight to the mission.
-        onStart={() => setScreen(introDone ? "play" : "intro")}
+        onStart={() => {
+          // Start always means a NEW mission; saved progress is offered separately.
+          clearProgress();
+          setChoices({});
+          setStepIndex(0);
+          setConsequence(null);
+          setLab(null);
+          setScreen(introDone ? "play" : "intro");
+        }}
+        resumeDay={saved && saved.stepIndex > 0 ? savedDay : undefined}
+        onResume={() => {
+          if (!saved) return;
+          setChoices(saved.choices);
+          setStepIndex(saved.stepIndex);
+          setConsequence(null);
+          setScreen(saved.stepIndex >= STEPS.length ? "outcome" : "play");
+        }}
         onReplayIntro={() => setScreen("intro")}
         onGuide={() => setScreen("briefing")}
         onScience={() => setScience(true)}

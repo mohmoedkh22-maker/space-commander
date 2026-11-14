@@ -1,5 +1,25 @@
 # progress.md
 
+## 2026-11-14 · V0.4: Decision & simulation engine
+**Done**
+- `GameState` now holds day, energy, water, oxygen, food, **facility conditions**, **crew safety**, **decision history**,
+  **active mission** and **mission outcome** (`src/lib/game/types.ts`)
+- Named types: `Mission`, `Decision`, `DecisionOption`, `ResourceEffect`, `Consequence`, `GameEvent`, `MissionResult`
+- Data-driven chapters and events in `missions.ts` (Mission 01 Energy, Mission 02 Water & Food, Mission 03 Safety); decisions stay in `decisions.ts`
+- Engine: pure, immutable transitions; validation rejects unknown, locked or repeated decisions; resources clamped to limits;
+  detailed day log (light factor, load breakdown, recovery, crop growth)
+- `consequences.ts`: `explainDay` ("why did this happen?"), `explainFacilities`, state-aware `guidanceFor` (SUHAIL), `missionResult` (reasons for the ending)
+- UI: "Why did this happen?" panel on results, days and the ending; SUHAIL guidance follows the state; the base map reflects facility conditions
+- Optional progress saved on the device (`persistence.ts`, validated) with "Continue my mission" on the start screen
+- `docs/simulation-assumptions.md`: every constant is labelled as an educational assumption, pending review by the NASA Data Lead
+- Tests: **42 passing** (22 new: state shape, immutability with frozen state, determinism, limits, invalid decisions,
+  one Day-2 choice → resources, facility, options, guidance and outcome, explanations, persistence)
+- Checked in the browser: explanations, guidance changes, save, reload and resume, then a full run to the ending
+
+**Success criteria**
+Every option leads to a different state ✓ · an early choice changes later events ✓ · different choices give different results ✓ ·
+the same choices give the same results ✓ · tests and build pass ✓
+
 ## 2026-11-14 · Release v0.2: Cinematic introduction
 - 7-scene cinematic (`src/components/cinematic/`), procedural audio (`src/lib/audio.ts`), bilingual script (`src/lib/cinematicScript.ts`)
 - Onboarding saved in settings (`introDone`); Skip, Esc and Replay intro; Sound and Music toggles

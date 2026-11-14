@@ -99,6 +99,7 @@ export const DECISIONS: Record<DecisionId, Decision> = {
           ...withPolicy(s, { greenhouse: "reduced", research: false }),
           today: { ...s.today, extraLoadKWh: s.today.extraLoadKWh + LOADS.inspection },
           performanceFactor: 0.95, // ASSUMPTION: cleaning dust raises panel performance
+          facilities: { ...s.facilities, energy: "serviced" },
           flags: { ...s.flags, panelsInspected: true },
         }),
         suhail: t(

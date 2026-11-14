@@ -47,11 +47,15 @@ export function Splash({
   onScience,
   onReplayIntro,
   onGuide,
+  resumeDay,
+  onResume,
 }: {
   onStart: () => void;
   onScience: () => void;
   onReplayIntro?: () => void;
   onGuide?: () => void;
+  resumeDay?: number;
+  onResume?: () => void;
 }) {
   const { tx, lang, set, beep } = useSettings();
   const [story, setStory] = useState(false);
@@ -131,6 +135,11 @@ export function Splash({
         >
           🚀 {tx(MENU.startMission)}
         </Button>
+        {resumeDay !== undefined && onResume && (
+          <Button variant="ghost" onClick={onResume} className="anim-rise min-w-[min(100%,320px)]">
+            ▶ {tx(t("متابعة مهمتي", "Continue my mission"))} · {tx(UI.day)} {resumeDay}
+          </Button>
+        )}
 
       </main>
 
