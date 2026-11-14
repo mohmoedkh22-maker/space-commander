@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DECISIONS } from "@/lib/game/decisions";
 import type { DayLog, DecisionRecord, GameState, T } from "@/lib/game/types";
 import { ILLUMINATION } from "@/lib/nasa/illumination";
-import { SCENARIO_LIGHT_FACTOR } from "@/lib/game/config";
+import { missionDayLight } from "@/lib/game/engine";
 import { UI, t } from "@/lib/i18n";
 import { explainDay, guidanceFor } from "@/lib/game/consequences";
 import { suhailLines } from "@/lib/game/dialogue";
@@ -23,7 +23,8 @@ export const MISSION_NAMES: Record<number, T> = {
 export function NasaLightCard({ day }: { day: number }) {
   const { tx } = useSettings();
   const pct = (ILLUMINATION.fraction * 100).toFixed(1);
-  const todayPct = (ILLUMINATION.fraction * (SCENARIO_LIGHT_FACTOR[day] ?? 1) * 100).toFixed(0);
+  const light = missionDayLight(day);
+  const todayPct = (light.sunlitFraction * 100).toFixed(0);
   return (
     <Panel style={{ borderColor: "#ffad4d88" }}>
       <h2 className="mb-2 font-display font-bold text-solar">🛰 {tx(UI.nasaFact)}</h2>
@@ -37,16 +38,18 @@ export function NasaLightCard({ day }: { day: number }) {
         </div>
         <div className="rounded-xl bg-space/70 p-3">
           <div className="font-display text-3xl font-bold text-coral" dir="ltr">
-            ~{todayPct}%
+            {todayPct}%
           </div>
-          <div className="text-xs text-moon">{tx(t("ضوء اليوم في سيناريو التدريب (افتراضي)", "Today's light in the training scenario (made up)"))}</div>
+          <div className="text-xs text-moon">
+            {tx(t("ضوء اليوم في موقعنا (ناسا", "Today's light at our site (NASA"))} · <span dir="ltr">{light.date}</span>)
+          </div>
         </div>
       </div>
       <p className="mt-2 text-xs text-moon">
         {tx(
           t(
-            "المصدر: NASA LRO/LOLA — Mazarico وآخرون 2011. الرقم الأول قياس حقيقي متوسط على 18.6 سنة؛ الثاني جزء من قصة اللعبة.",
-            "Source: NASA LRO/LOLA — Mazarico et al. 2011. The first number is a real 18.6-year average; the second is part of the game story.",
+            "المصادر: الرقم الأول متوسط 18.6 سنة من NASA LRO/LOLA (Mazarico وآخرون 2011). الثاني من محاكاة ناسا للإضاءة يومًا بيوم لعام 2026 (NASA SVS 4930). القاعدة والطاقم خياليون.",
+            "Sources: the first number is an 18.6-year average from NASA LRO/LOLA (Mazarico et al. 2011). The second comes from NASA's day-by-day lighting simulation for 2026 (NASA SVS 4930). The base and crew are fictional.",
           ),
         )}
       </p>

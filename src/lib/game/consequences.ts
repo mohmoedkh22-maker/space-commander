@@ -40,13 +40,20 @@ const SHED_TEXT: Record<string, T> = {
 /** Explains one simulated day: where energy came from and went, and why water, food and oxygen changed. */
 export function explainDay(log: DayLog, before: GameState, after: GameState): Consequence[] {
   const out: Consequence[] = [];
-  const lightPct = r(ILLUMINATION.fraction * log.lightFactor * 100);
+  const lightPct = r(log.sunlitFraction * 100);
+  const avgPct = r(ILLUMINATION.fraction * 100);
   out.push({
     kind: "energy",
-    text: t(
-      `الألواح أنتجت ${r(log.solarKWh)} ك.و.س لأن ضوء الشمس اليوم كان حوالي ${lightPct}% (متوسط ناسا 88% × ظروف القصة).`,
-      `The panels made ${r(log.solarKWh)} kWh because today's sunlight was about ${lightPct}% (NASA's 88% average × the story's conditions).`,
-    ),
+    text:
+      log.lightSource === "nasa-svs-4930"
+        ? t(
+            `الألواح أنتجت ${r(log.solarKWh)} ك.و.س لأن موقعنا كان مضاءً ${lightPct}% من اليوم (بيانات ناسا ليوم ${log.lightDate}؛ المتوسط الطويل ${avgPct}%).`,
+            `The panels made ${r(log.solarKWh)} kWh because our site was sunlit ${lightPct}% of the day (NASA data for ${log.lightDate}; long-term average ${avgPct}%).`,
+          )
+        : t(
+            `الألواح أنتجت ${r(log.solarKWh)} ك.و.س. بيانات هذا اليوم غير متوفرة، فاستخدمنا متوسط ناسا الطويل ${avgPct}%.`,
+            `The panels made ${r(log.solarKWh)} kWh. This day's data is missing, so we used NASA's long-term average of ${avgPct}%.`,
+          ),
   });
   const L = log.loads;
   out.push({

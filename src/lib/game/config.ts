@@ -59,18 +59,16 @@ export const THRESHOLDS = {
 };
 
 /**
- * FICTIONAL training-scenario shading factor applied to the NASA long-term average.
- * The NASA product is an 18.6-year average, not a forecast; this curve only creates
- * the story's "vanishing sun" period and is labelled as an assumption in the UI.
+ * GAME PARAMETER (V0.5): which real 2026 week the 7 mission days are mapped to.
+ * The choice of week is a design decision; the light on each of those days is NOT —
+ * it is read from NASA SVS 4930 through src/lib/nasa/NASADataAdapter.ts.
  */
-export const SCENARIO_LIGHT_FACTOR: Record<number, number> = {
-  1: 1.0,
-  2: 0.4,
-  3: 0.55,
-  4: 0.75,
-  5: 0.7,
-  6: 0.7,
-  7: 0.85,
+export const MISSION_CALENDAR = {
+  startDate: "2026-05-29",
+  reason: {
+    ar: "اخترنا أسبوعًا حقيقيًا (29 مايو – 4 يونيو 2026) يقلّ فيه ضوء الشمس عن موقعنا يومًا بعد يوم (58% ثم 50% ثم 33%) ثم يعود — تمامًا كما في قصة «الشمس التي تختفي». اختيار الأسبوع قرار تصميم، أما الضوء في كل يوم فهو من بيانات ناسا.",
+    en: "We picked a real week (29 May – 4 June 2026) in which sunlight at our site fades day after day (58%, then 50%, then 33%) and then returns — just like the “Vanishing Sun” story. Choosing the week is a design decision; the light on each day is NASA data.",
+  },
 };
 
 export const ENDING_RULES = {

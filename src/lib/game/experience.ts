@@ -2,10 +2,10 @@
 // chapter results. Pure functions that READ the engine state (and reuse engine functions);
 // no simulation math is duplicated here.
 import { ILLUMINATION } from "@/lib/nasa/illumination";
-import { BATTERY_CAP_KWH, LOADS, SCENARIO_LIGHT_FACTOR, THRESHOLDS, WATER } from "./config";
+import { BATTERY_CAP_KWH, LOADS, THRESHOLDS, WATER } from "./config";
 import { DECISIONS } from "./decisions";
 import { suhailLines } from "./dialogue";
-import { applyDecision, lockReason, runDay, simulate, solarForDay, STEPS } from "./engine";
+import { applyDecision, lockReason, missionDayLight, runDay, simulate, solarForDay, STEPS } from "./engine";
 import { MISSIONS } from "./missions";
 import type { Choices, CrewId, DecisionId, GameState, MissionId, ResourceId, Resources, T } from "./types";
 
@@ -41,13 +41,15 @@ export interface ExperienceEvent {
 }
 
 const decided = (s: GameState, id: DecisionId) => s.decisionHistory.some((h) => h.decisionId === id);
-const todayLightPct = (day: number) => r(ILLUMINATION.fraction * (SCENARIO_LIGHT_FACTOR[day] ?? 1) * 100);
+const todayLightPct = (day: number) => r(missionDayLight(day).sunlitFraction * 100);
+const AVG_PCT = r(ILLUMINATION.fraction * 100);
 
 export const EXPERIENCE_EVENTS: ExperienceEvent[] = [
   {
     id: "ENERGY_WARNING",
     severity: "warning",
-    trigger: (s) => s.day === 2 && !decided(s, "d1-energy") && (SCENARIO_LIGHT_FACTOR[2] ?? 1) < 0.6,
+    // fires when NASA's light for mission day 2 is clearly below the site's long-term average
+    trigger: (s) => s.day === 2 && !decided(s, "d1-energy") && missionDayLight(2).sunlitFraction < ILLUMINATION.fraction * 0.8,
     title: t("تحذير: توقعات الطاقة الشمسية", "WARNING: Solar energy forecast"),
     description: () =>
       t(
@@ -212,8 +214,8 @@ export const INSPECTIONS: Record<FacilityInspection["id"], FacilityInspection> =
         action: t("اقرأ توقعات الضوء", "Read the light forecast"),
         reveal: (s) =>
           t(
-            `ضوء اليوم حوالي ${todayLightPct(2)}% بدل 88% المعتادة (متوسط ناسا). الألواح ستنتج حوالي ${r(solarForDay(2, s.performanceFactor).energyKWh)} ك.و.س بدل ${r(solarForDay(1, s.performanceFactor).energyKWh)}.`,
-            `Today's light is about ${todayLightPct(2)}% instead of the usual 88% (NASA average). The panels will make about ${r(solarForDay(2, s.performanceFactor).energyKWh)} kWh instead of ${r(solarForDay(1, s.performanceFactor).energyKWh)}.`,
+            `حسب بيانات ناسا، موقعنا سيكون مضاءً ${todayLightPct(2)}% فقط من اليوم (أمس ${todayLightPct(1)}%، والمتوسط الطويل ${AVG_PCT}%). الألواح ستنتج حوالي ${r(solarForDay(2, s.performanceFactor).energyKWh)} ك.و.س بدل ${r(solarForDay(1, s.performanceFactor).energyKWh)}.`,
+            `NASA data says our site will be sunlit only ${todayLightPct(2)}% of today (yesterday ${todayLightPct(1)}%, long-term average ${AVG_PCT}%). The panels will make about ${r(solarForDay(2, s.performanceFactor).energyKWh)} kWh instead of ${r(solarForDay(1, s.performanceFactor).energyKWh)}.`,
           ),
       },
       {

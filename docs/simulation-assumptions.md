@@ -1,7 +1,8 @@
 # Simulation assumptions (educational, configurable)
 
 > **Status:** these are **educational game assumptions**, not NASA measurements, until they are reviewed by the team's NASA Data Lead.
-> The only NASA-derived input is the illumination fraction **0.8844** (see `docs/nasa-data-sources.md`).
+> The only NASA-derived inputs are the **daily sunlit fraction** of each mission day (NASA SVS 4930) and the long-term
+> fraction **0.8844** (NASA LOLA, context and fallback). See `docs/nasa-data-sources.md`.
 > Every value below lives in `src/lib/game/config.ts`. Change it there and the engine, explanations and tests use it automatically.
 
 ## Architecture
@@ -40,8 +41,10 @@ When the battery would go negative, the engine sheds in this order: research →
 ## Water (L/day, crew of 4)
 Crew use 40 (30 with rationing); recovery 90 % normal, 60 % after the fault, +15 % with boost (max 95 %), 90 % after repair. Greenhouse net use 15 / 8 / 3.
 
-## Story light curve (fictional)
-Day factors applied to NASA's 88.44 % average: 1.0 · 0.4 · 0.55 · 0.75 · 0.7 · 0.7 · 0.85. NASA provides a long-term average, not a daily forecast.
+## Daily light (V0.5: NASA data, no longer fictional)
+`MISSION_CALENDAR.startDate = "2026-05-29"` maps mission days 1–7 to real dates. **The choice of week is the assumption.**
+The light on those days is read from NASA SVS 4930 through `NASADataAdapter`: 0.583 · 0.500 · 0.333 · 0.833 · 1.000 · 0.917 · 0.417.
+The old fictional `SCENARIO_LIGHT_FACTOR` curve was removed.
 
 ## Endings
 - **Mission Interrupted (C):** conservation mode chosen, or more than 1 shortfall day, or water < 150 L
@@ -52,7 +55,7 @@ The crew is safe in every ending.
 ## The connected decision chain (tested in `v04.test.ts`)
 Mission 01 options: **Prioritize the greenhouse** · **Conserve energy** · **Balance energy loads**.
 Choosing **Prioritize the greenhouse**:
-1. lowers the battery (132 kWh after Day 2, compared with 207 kWh when conserving), so the Power Station reports a low reserve,
+1. lowers the battery below 150 kWh after Day 2 (conserving keeps it higher), so the Power Station reports a low reserve,
 2. keeps the greenhouse "thriving",
 3. locks **Increase water recycling** in Mission 02 (prerequisite: energy ≥ 150 kWh) and **Continue most mission goals** in Mission 03,
 4. changes SUHAIL's lines (the "options limited" rule fires; the "crop delay" rule does not),

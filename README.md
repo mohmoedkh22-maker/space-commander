@@ -13,18 +13,28 @@ oxygen and food are linked systems: a choice on Day 2 changes which options exis
 
 ## How NASA data is used
 
-The solar power available to the base is computed from **real NASA LRO/LOLA lunar south-pole illumination data**:
+Every day of the mission, the solar power available to the base comes from **NASA's day-by-day simulation of sunlight
+and shadow at the Moon's south pole**. Both sources describe the same site (89.475°S, 222.557°E, on the ridge next to
+Shackleton crater):
 
-| | |
-|---|---|
-| Dataset | `AVGVISIB_85S_060M_201608` — average solar illumination, 85°S–90°S, 60 m/px |
-| Source | NASA GSFC Planetary Geodesy Data Archive, product 69 — https://pgda.gsfc.nasa.gov/products/69 |
-| Citation | Mazarico et al. (2011), *Icarus* 211, 1066–1081, doi:10.1016/j.icarus.2010.10.030 |
-| Value used | **0.8844** (88.44 % of the time sunlit) at 89.475°S, 222.557°E, the best-lit pixel within 20 km of Shackleton crater |
+| | Daily light (drives gameplay) | Long-term average (context and fallback) |
+|---|---|---|
+| Source | **NASA SVS 4930**, *Illumination at the Moon's South Pole, 2023 to 2030*: https://svs.gsfc.nasa.gov/4930/ (companion of [SVS 5027](https://svs.gsfc.nasa.gov/5027/)) | `AVGVISIB_85S_060M_201608`, NASA GSFC PGDA product 69: https://pgda.gsfc.nasa.gov/products/69 |
+| Made from | LRO LOLA terrain + JPL DE421 Sun positions, rendered every 2 h (E. Wright, N. Petro, NASA SVS) | LRO LOLA terrain, Mazarico et al. (2011), *Icarus* 211, doi:10.1016/j.icarus.2010.10.030 |
+| What we use | Share of each 2026 day the site is sunlit (4,380 frames measured by script) | 0.8844 = share of time sunlit over ~18.6 years |
+| Check | 2026: **91.3 %** sunlit · Shackleton floor control: 0 % | 88.4 % (agrees with the 2026 measurement) |
 
-`Energy (kWh/day) = 10 kW × 24 h × 0.8844 × 0.85 ≈ 180 kWh` — only the 0.8844 comes from NASA. Panel size, efficiency
-and the story's "vanishing sun" curve are labelled game assumptions. Without the NASA value the energy model has no
-input. Details: [docs/nasa-data-sources.md](docs/nasa-data-sources.md) · [docs/solar-energy-model.md](docs/solar-energy-model.md).
+```
+Energy (kWh/day) = 10 kW × 24 h × sunlit fraction of that day (NASA) × 0.85
+```
+
+The 7 mission days are mapped to the real week of **29 May – 4 June 2026**. Sunlight there fades from 58 % to 50 % to 33 %
+and then returns, so the panels make 119, 102, 68, 170, 204, 187 and 85 kWh. The sunlit fraction is NASA-derived. Panel
+size, efficiency, loads and the choice of week are labelled game assumptions. In-game, **About the Science** shows the
+whole year, compares the mission week with the brightest and darkest real weeks of 2026, and lists sources and
+simplifications. Missing data falls back to the labelled LOLA average. Nothing is invented.
+
+Details: [docs/nasa-data-sources.md](docs/nasa-data-sources.md) · [docs/solar-energy-model.md](docs/solar-energy-model.md).
 
 ## Run it
 
@@ -35,9 +45,14 @@ npm test           # simulation, NASA adapter and What If tests
 npm run build      # production build
 ```
 
-Re-extract the NASA value (Python 3 + `pip install rasterio numpy`):
+Re-extract the NASA data (Python 3):
 
 ```bash
+# daily light from NASA SVS 4930 frames (standard library only; ~20 min, ~150 MB of HTTP range reads instead of ~7 GB of frames)
+python -I scripts/extract_svs_illumination.py
+# offline: raw CSV -> src/data/nasa/svs-4930-selene1-2026.json
+python -I scripts/build_svs_dataset.py
+# long-term LOLA average (needs: pip install rasterio numpy)
 python -I scripts/extract_illumination.py src/data/nasa/lunar-illumination.json
 ```
 
@@ -52,7 +67,8 @@ No backend, no accounts, no API keys.
 src/lib/nasa/        NASA data adapter + solar energy model (pure TS)
 src/lib/game/        simulation engine, decisions, What If Lab logic, tests
 src/components/      UI: HUD, lunar base (SVG), SUHAIL, screens
-src/data/nasa/       versioned extracted NASA sample (JSON)
+src/data/nasa/       versioned extracted NASA datasets (JSON)
+data/svs4930/        raw per-frame luminance from NASA SVS 4930 (CSV, reproducible)
 scripts/             reproducible NASA data extraction
 docs/                data provenance and model documentation
 ```

@@ -9,7 +9,9 @@ Next.js 15 App Router, React 19, TypeScript (strict), Tailwind CSS 4, Vitest. No
 - `src/lib/game/*` and `src/lib/nasa/*` are **pure TypeScript**: no React and no randomness. The UI derives everything from
   `simulate(choices, stepIndex)`.
 - Game balance numbers live only in `src/lib/game/config.ts`. Decision content lives in `src/lib/game/decisions.ts` (AR + EN).
-- NASA data is read only through `src/lib/nasa/illumination.ts`.
+- NASA data is read only through `src/lib/nasa/NASADataAdapter.ts` (daily SVS 4930 light, used by the engine) and
+  `src/lib/nasa/illumination.ts` (LOLA long-term average: context and fallback). Missing data must fall back with a
+  visible `source` flag — never fill gaps with made-up values.
 - All user-facing text must exist in Arabic and English.
 
 ## Hard rules

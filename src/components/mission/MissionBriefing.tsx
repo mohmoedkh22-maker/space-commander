@@ -116,7 +116,7 @@ export function MissionBriefing({ onDone }: { onDone: () => void }) {
             ))}
           </ol>
           <p className="mt-3 text-sm text-moon">
-            {tx(t("الأيام والأحداث خيالية لأغراض التعلم.", "The days and events are fictional, for learning."))}
+            {tx(t("الأحداث خيالية لأغراض التعلم، لكن ضوء الشمس في كل يوم من بيانات ناسا الحقيقية.", "The events are fictional, for learning — but each day's sunlight comes from real NASA data."))}
           </p>
         </Panel>
       </StepFrame>

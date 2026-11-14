@@ -1,5 +1,37 @@
 # progress.md
 
+## 2026-11-14 · V0.5 (prompt label): NASA Science Integration
+Comes after the V3 release (cinematic gameplay). The game version number has not been changed yet.
+
+**Done**
+- **Source reviewed: NASA SVS 5027** (primary candidate). It offers movies, frames and images, but no numeric files. Its frames
+  are feasible to sample, but the printed "Shackleton" label covers our base site (and the scale is about 0.57 km/px). Documented
+  decision: we measured the companion product **NASA SVS 4930** instead (same team, method and inputs: LOLA DEM + DE421;
+  no labels; about 0.11 km/px)
+- `scripts/extract_svs_illumination.py`: reads all 4,380 frames of 2026 (every 2 h) with HTTP Range requests (TIFF directory + the
+  few LZW rows around the site; the decoder was checked byte-for-byte against Pillow), fits the map geometry (88°S ring, Shackleton
+  check), and samples the site and a permanent-shadow control. The time axis was checked against the time printed on frames 1, 2000 and 4380
+- `scripts/build_svs_dataset.py` (offline) → `src/data/nasa/svs-4930-selene1-2026.json`: 365 daily sunlit fractions + provenance,
+  method, validation, limitations. Raw per-frame values are kept in `data/svs4930/selene1_luminance_2026.csv`
+- Validation: 2026 **91.3 %** sunlit vs LOLA 18.6-year **88.4 %** at the same site; the Shackleton floor control is **0 %** in all frames.
+  Threshold fixed after review: shadow renders exactly black, so dim low-angle sunlight counts as lit. The cut-off sensitivity is documented
+- **`src/lib/nasa/NASADataAdapter.ts`**: schema validation, date validation, day/window lookups, brightest/darkest real weeks,
+  and **missing-data fallback** to the labelled LOLA average (per day, or for the whole file if it fails validation). Static data, works offline
+- **Engine connected:** `missionDayLight(day)` → `solarForDay` → `runDay`. Mission days map to the real week 2026-05-29 … 06-04
+  (`MISSION_CALENDAR`, a design choice). Panels now make 119 / 102 / 68 / 170 / 204 / 187 / 85 kWh. The fictional
+  `SCENARIO_LIGHT_FACTOR` was removed. The day log records `lightDate`, `sunlitFraction` and `lightSource`
+- NASA values are now shown in the energy warning, the "Read the light forecast" clue, the day explanations and the decision card, each with its date
+- **About the Science** screen rebuilt: the whole year as a chart, a scenario selector (mission week / brightest / darkest real week) showing
+  energy per day against the 180 kWh need, the formula with NASA inputs and game assumptions colour-coded, checks, simplifications and sources
+- Balance: all three endings are still reachable. Farming at full power never reaches *Accomplished*; saving energy keeps more options open
+- Tests: **67 passing** (15 new in `NASADataAdapter.test.ts`: loading, schema, input validation, calculations, missing data, reproducibility).
+  tsc, eslint and build pass. Checked in the browser at desktop and 375 px
+
+**Not done / limits**
+- No live NASA API: SVS has none for this. The app uses the verified static extract, attributed in the app
+- Values are measured from rendered frames (binary lit/dark per 2 h, ~330 m sample), not from a published numeric product
+- The player cannot yet choose the mission week for gameplay. The scenario selector is in About the Science only, to keep the tested balance
+
 ## 2026-11-14 · V0.5: Cinematic gameplay experience
 **New flow for every mission:** cinematic intro → interactive base (investigate) → decision → consequences in the world → mission debrief → next mission.
 
@@ -50,7 +82,7 @@
 - Named types: `Mission`, `Decision`, `DecisionOption`, `ResourceEffect`, `Consequence`, `GameEvent`, `MissionResult`
 - Data-driven chapters and events in `missions.ts` (Mission 01 Energy, Mission 02 Water & Food, Mission 03 Safety); decisions stay in `decisions.ts`
 - Engine: pure, immutable transitions; validation rejects unknown, locked or repeated decisions; resources clamped to limits;
-  detailed day log (light factor, load breakdown, recovery, crop growth)
+  detailed day log (light, load breakdown, recovery, crop growth)
 - `consequences.ts`: `explainDay` ("why did this happen?"), `explainFacilities`, state-aware `guidanceFor` (SUHAIL), `missionResult` (reasons for the ending)
 - UI: "Why did this happen?" panel on results, days and the ending; SUHAIL guidance follows the state; the base map reflects facility conditions
 - Optional progress saved on the device (`persistence.ts`, validated) with "Continue my mission" on the start screen

@@ -1,14 +1,14 @@
 ﻿// SPACE COMMANDER simulation engine — the single source of truth.
 // Pure, deterministic, immutable: no React, no randomness, no I/O; inputs are never mutated.
 import { calculateSolarEnergy } from "@/lib/nasa/energyModel";
-import { ILLUMINATION } from "@/lib/nasa/illumination";
+import { addDays, NASA_DATA, type DailyLight } from "@/lib/nasa/NASADataAdapter";
 import {
   BATTERY_CAP_KWH,
   CROP_GROWTH,
   ENDING_RULES,
   LOADS,
+  MISSION_CALENDAR,
   RESOURCE_LIMITS,
-  SCENARIO_LIGHT_FACTOR,
   SOLAR_RATED_KW,
   START,
   THRESHOLDS,
@@ -106,12 +106,19 @@ export function createInitialState(): GameState {
   };
 }
 
+/** NASA SVS 4930 light for a mission day (1..7), via the adapter. Days outside 1..7 use the nearest mission day. */
+export function missionDayLight(day: number): DailyLight {
+  const d = clamp(Math.round(day), 1, 7);
+  return NASA_DATA.day(addDays(MISSION_CALENDAR.startDate, d - 1));
+}
+
+/** Solar energy for a mission day: NASA-derived sunlit fraction × game-assumed panel size and performance. */
 export function solarForDay(day: number, performanceFactor: number) {
-  const factor = SCENARIO_LIGHT_FACTOR[day] ?? 1;
-  return calculateSolarEnergy(ILLUMINATION.fraction * factor, 24, {
-    ratedPowerKW: SOLAR_RATED_KW,
-    performanceFactor,
-  });
+  const light = missionDayLight(day);
+  return {
+    ...calculateSolarEnergy(light.sunlitFraction, 24, { ratedPowerKW: SOLAR_RATED_KW, performanceFactor }),
+    light,
+  };
 }
 
 /* ---------------- Daily simulation ---------------- */
@@ -119,8 +126,8 @@ export function solarForDay(day: number, performanceFactor: number) {
 /** Simulates one full day with the current policy, shedding non-vital loads if power runs out. */
 export function runDay(s: GameState): GameState {
   if (s.day > 7) return s;
-  const lightFactor = SCENARIO_LIGHT_FACTOR[s.day] ?? 1;
-  const solar = solarForDay(s.day, s.performanceFactor).energyKWh;
+  const sunToday = solarForDay(s.day, s.performanceFactor);
+  const solar = sunToday.energyKWh;
   const battery = s.resources.energy;
   let greenhouse = s.policy.greenhouse;
   let research = s.policy.research && !s.today.researchPaused && !s.flags.researchEnded;
@@ -170,7 +177,9 @@ export function runDay(s: GameState): GameState {
 
   const log: DayLog = {
     day: s.day,
-    lightFactor,
+    lightDate: sunToday.light.date,
+    sunlitFraction: sunToday.light.sunlitFraction,
+    lightSource: sunToday.light.source,
     solarKWh: solar,
     loadKWh: totalLoad,
     loads,

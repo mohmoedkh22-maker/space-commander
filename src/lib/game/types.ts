@@ -67,8 +67,12 @@ export interface Policy {
 
 export interface DayLog {
   day: number;
-  /** story light factor applied to the NASA average that day */
-  lightFactor: number;
+  /** real 2026 date this mission day is mapped to (MISSION_CALENDAR) */
+  lightDate: string;
+  /** share of that day the site is sunlit (0..1), from NASA SVS 4930 via NASADataAdapter */
+  sunlitFraction: number;
+  /** "nasa-svs-4930", or "fallback-lola-average" if the day was missing */
+  lightSource: "nasa-svs-4930" | "fallback-lola-average";
   solarKWh: number;
   loadKWh: number;
   /** where the energy went (kWh) */
