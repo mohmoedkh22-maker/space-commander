@@ -186,6 +186,47 @@ body {
 }
 .c7-online { animation: online 1.2s ease-out both; }
 
+/* ---------- V0.5 gameplay experience ---------- */
+@keyframes mi-dusk {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.mi-dusk { animation: mi-dusk 7s ease-in both; }
+@keyframes mi-drop {
+  0% { transform: translateY(-10vh); opacity: 0; }
+  20% { opacity: 0.9; }
+  100% { transform: translateY(110vh); opacity: 0; }
+}
+.mi-drop { opacity: 0; animation: mi-drop 3.2s linear infinite; }
+@keyframes mi-alarm {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.6; }
+}
+.mi-alarm { animation: mi-alarm 2.4s ease-in-out infinite; }
+@keyframes mi-streak {
+  0% { transform: translate(0, -30vh) rotate(18deg); opacity: 0; }
+  30% { opacity: 0.8; }
+  100% { transform: translate(-12vw, 120vh) rotate(18deg); opacity: 0; }
+}
+.mi-streak { opacity: 0; animation: mi-streak 2.8s linear infinite; }
+@keyframes clue-pop {
+  0% { transform: scale(0.9); opacity: 0; }
+  60% { transform: scale(1.03); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+.clue-pop { animation: clue-pop 0.45s ease-out both; }
+@keyframes banner-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.0), 0 0 24px rgba(255, 107, 107, 0.25); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.45); }
+}
+.banner-pulse { animation: banner-pulse 2s ease-in-out infinite; }
+@keyframes toast-in {
+  from { transform: translate(-50%, 20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+.toast { animation: toast-in 0.3s ease-out both; }
+button:not(:disabled):active, [role="button"]:active, label:active { transform: scale(0.97); }
+
 html[data-motion="reduced"] *,
 html[data-motion="reduced"] *::before,
 html[data-motion="reduced"] *::after {

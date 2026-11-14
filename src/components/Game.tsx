@@ -9,7 +9,12 @@ import { CinematicIntro } from "./cinematic/CinematicIntro";
 import { PROGRESS_KEY, parseProgress, serializeProgress, type SavedProgress } from "@/lib/game/persistence";
 import { SettingsProvider, useSettings } from "./settings";
 import { Splash } from "./screens/Intro";
-import { DayScreen, FaultEvent, SafetyScreen, StormEvent } from "./screens/Mission";
+import { DayScreen } from "./screens/Mission";
+import { BaseHub } from "./experience/BaseHub";
+import { MissionIntro } from "./experience/MissionIntro";
+import { MissionResult } from "./experience/MissionResult";
+import { cluesFor } from "@/lib/game/experience";
+import type { MissionId } from "@/lib/game/types";
 import { ConsequenceScreen, DecisionScreen } from "./mission/DecisionCards";
 import { OutcomeScreen, ReportScreen } from "./screens/Outcome";
 import { ScienceScreen } from "./screens/Science";
@@ -33,6 +38,14 @@ function GameInner() {
   const [choices, setChoices] = useState<Choices>({});
   const [consequence, setConsequence] = useState<DecisionId | null>(null);
   const [lab, setLab] = useState<LabResult | null>(null);
+  // V0.5 experience: which intros / base investigations / debriefs were seen, and which clues were found
+  const [seen, setSeen] = useState<Set<string>>(new Set());
+  const [clues, setClues] = useState<Set<string>>(new Set());
+  const markSeen = (k: string) => setSeen((s) => new Set(s).add(k));
+  const resetExperience = () => {
+    setSeen(new Set());
+    setClues(new Set());
+  };
 
   const current = useMemo(() => simulate(choices, stepIndex), [choices, stepIndex]);
   const next = useMemo(() => simulate(choices, stepIndex + 1), [choices, stepIndex]);
@@ -73,6 +86,7 @@ function GameInner() {
 
   const restart = () => {
     clearProgress();
+    resetExperience();
     setChoices({});
     setStepIndex(0);
     setConsequence(null);
@@ -88,6 +102,7 @@ function GameInner() {
         onStart={() => {
           // Start always means a NEW mission; saved progress is offered separately.
           clearProgress();
+          resetExperience();
           setChoices({});
           setStepIndex(0);
           setConsequence(null);
@@ -97,6 +112,17 @@ function GameInner() {
         resumeDay={saved && saved.stepIndex > 0 ? savedDay : undefined}
         onResume={() => {
           if (!saved) return;
+          // chapters already behind the saved step don't replay their intro / debrief
+          const past = (step: string, keys: string[]) => (saved.stepIndex > STEPS.indexOf(step as never) ? keys : []);
+          setSeen(
+            new Set([
+              ...past("d1-energy", ["intro-1", "hub-1"]),
+              ...past("evt-fault", ["result-1", "intro-2"]),
+              ...past("d2-water", ["hub-2"]),
+              ...past("evt-storm", ["result-2", "intro-3"]),
+              ...past("safety", ["hub-3"]),
+            ]),
+          );
           setChoices(saved.choices);
           setStepIndex(saved.stepIndex);
           setConsequence(null);
@@ -126,6 +152,14 @@ function GameInner() {
   if (screen === "tour") return <LunarBaseScreen onDone={() => setScreen("play")} onScience={() => setScience(true)} />;
 
   const ending = computeEnding(final.state);
+  if (screen === "outcome" && !seen.has("result-3")) {
+    return (
+      <>
+        <MissionHUD state={final.state} onScience={() => setScience(true)} />
+        <MissionResult mission={3} choices={choices} onContinue={() => markSeen("result-3")} />
+      </>
+    );
+  }
   if (screen === "outcome") {
     return (
       <>
@@ -177,22 +211,67 @@ function GameInner() {
     const day = Number(step.slice(3));
     hudState = next.state;
     body = <DayScreen key={step} day={day} before={current.state} after={next.state} onNext={() => advance(1)} />;
-  } else if (step === "evt-fault") {
-    hudState = next.state;
-    body = <FaultEvent state={next.state} onNext={() => advance(1)} />;
-  } else if (step === "evt-storm") {
-    hudState = next.state;
-    body = <StormEvent state={next.state} onNext={() => advance(1)} />;
+  } else if (step === "evt-fault" || step === "evt-storm") {
+    // end of the previous chapter → debrief, then the next mission's cinematic intro
+    const prev: MissionId = step === "evt-fault" ? 1 : 2;
+    const nextMission: MissionId = step === "evt-fault" ? 2 : 3;
+    if (!seen.has(`result-${prev}`)) {
+      body = <MissionResult key={`r${prev}`} mission={prev} choices={choices} onContinue={() => markSeen(`result-${prev}`)} />;
+    } else {
+      return (
+        <MissionIntro
+          key={`i${nextMission}`}
+          mission={nextMission}
+          state={next.state}
+          onStart={() => {
+            markSeen(`intro-${nextMission}`);
+            advance(1);
+          }}
+        />
+      );
+    }
   } else if (step === "safety") {
-    body = <SafetyScreen state={current.state} onNext={() => advance(1)} />;
+    // Mission 03 investigation includes the engine's mandatory safety steps
+    body = (
+      <BaseHub
+        key="hub-3"
+        mission={3}
+        state={current.state}
+        found={clues}
+        onFind={(id) => setClues((s) => new Set(s).add(id))}
+        onReady={() => {
+          markSeen("hub-3");
+          advance(1);
+        }}
+      />
+    );
+  } else if (step === "d1-energy" && !seen.has("intro-1")) {
+    return <MissionIntro key="i1" mission={1} state={current.state} onStart={() => markSeen("intro-1")} />;
+  } else if ((step === "d1-energy" || step === "d2-water") && !seen.has(step === "d1-energy" ? "hub-1" : "hub-2")) {
+    const m: MissionId = step === "d1-energy" ? 1 : 2;
+    body = (
+      <BaseHub
+        key={`hub-${m}`}
+        mission={m}
+        state={current.state}
+        found={clues}
+        onFind={(id) => setClues((s) => new Set(s).add(id))}
+        onReady={() => markSeen(`hub-${m}`)}
+      />
+    );
   } else if (step) {
     const id = step as DecisionId;
+    const m: MissionId = id === "d1-energy" ? 1 : id === "d2-water" ? 2 : 3;
+    const notes = cluesFor(m)
+      .filter((c) => clues.has(c.clue.id))
+      .map((c) => c.clue.reveal(current.state));
     body = (
       <DecisionScreen
         key={id}
         id={id}
         state={current.state}
         records={current.records}
+        notes={notes}
         onConfirm={(opt) => {
           // The engine is the single source of truth: reject anything it does not accept.
           const check = tryApplyDecision(current.state, id, opt);

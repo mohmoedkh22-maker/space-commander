@@ -52,11 +52,17 @@ export function LunarBase({
   onSelect,
   selected,
   storm = false,
+  alert = null,
+  energyPct,
 }: {
   status: Record<FacilityId, Status>;
   onSelect?: (id: FacilityId) => void;
   selected?: FacilityId | null;
   storm?: boolean;
+  /** facility with an active emergency: pulsing warning beacon */
+  alert?: FacilityId | null;
+  /** battery fill shown on the power station (0..100) */
+  energyPct?: number;
 }) {
   const { tx } = useSettings();
   const glow = (st: Status, c: string) => (st === "crit" ? "#ff6b6b" : st === "warn" ? "#ffad4d" : st === "dim" ? "#aab6ca55" : c);
@@ -123,6 +129,18 @@ export function LunarBase({
             className={onSelect ? "cursor-pointer outline-none" : ""}
             style={{ filter: isSel ? `drop-shadow(0 0 10px ${c})` : undefined }}
           >
+            {/* emergency beacon */}
+            {alert === id && (
+              <polygon
+                points={[P(L.x - 18, L.y - 18), P(L.x + L.w + 18, L.y - 18), P(L.x + L.w + 18, L.y + L.d + 18), P(L.x - 18, L.y + L.d + 18)].join(" ")}
+                fill="#ff6b6b"
+                fillOpacity="0.12"
+                stroke="#ff6b6b"
+                strokeWidth="3"
+                strokeDasharray="10 8"
+                className="anim-glow"
+              />
+            )}
             {/* status ring on the ground */}
             <polygon
               points={[P(L.x - 8, L.y - 8), P(L.x + L.w + 8, L.y - 8), P(L.x + L.w + 8, L.y + L.d + 8), P(L.x - 8, L.y + L.d + 8)].join(" ")}
@@ -138,7 +156,23 @@ export function LunarBase({
                   <Box key={i} x={L.x + i * 42} y={L.y} w={34} d={L.d} h={L.h} top={st === "dim" ? "#2a3550" : "#1f3a7a"} left="#141c33" right="#1a2544" />
                 ))}
                 <Box x={L.x + 20} y={L.y + L.d + 12} w={40} d={20} h={22} top="#f3f6fc" left="#aab6ca" right="#8c97ad" />
-                <rect x={lx - 8} y={ly + 34} width="16" height="6" rx="2" fill={c} />
+                {energyPct !== undefined ? (
+                  <g aria-hidden>
+                    <rect x={lx - 26} y={ly + 30} width="52" height="12" rx="3" fill="#0b1026" stroke="#aab6ca" strokeWidth="1.5" />
+                    <rect
+                      x={lx - 24}
+                      y={ly + 32}
+                      width={Math.max(1, (48 * Math.min(100, energyPct)) / 100)}
+                      height="8"
+                      rx="2"
+                      fill={energyPct < 25 ? "#ff6b6b" : energyPct < 50 ? "#ffad4d" : "#43d9a3"}
+                      style={{ transition: "width 1.2s ease, fill 1.2s ease" }}
+                    />
+                    <rect x={lx + 26} y={ly + 34} width="3" height="4" fill="#aab6ca" />
+                  </g>
+                ) : (
+                  <rect x={lx - 8} y={ly + 34} width="16" height="6" rx="2" fill={c} />
+                )}
               </>
             ) : id === "greenhouse" ? (
               <>
@@ -152,6 +186,17 @@ export function LunarBase({
                   opacity={st === "ok" ? 1 : st === "warn" ? 0.6 : 0.3}
                   stroke="#c8ffe9"
                   strokeOpacity="0.5"
+                  style={{ transition: "opacity 1.2s ease" }}
+                />
+                {/* grow-light glow follows the greenhouse condition */}
+                <ellipse
+                  cx={lx}
+                  cy={ly + 52}
+                  rx="54"
+                  ry="14"
+                  fill="#c8ffe9"
+                  opacity={st === "ok" ? 0.55 : st === "warn" ? 0.22 : 0.05}
+                  style={{ transition: "opacity 1.2s ease" }}
                 />
                 {[-24, 0, 24].map((dx) => (
                   <path key={dx} d={`M${lx + dx} ${ly + 58} q-6 -14 0 -22 q6 8 0 22`} fill="#43d9a3" opacity={st === "dim" ? 0.4 : 0.9} />
@@ -167,7 +212,7 @@ export function LunarBase({
               </>
             )}
             {/* status symbol so status never relies on colour alone */}
-            {(st === "warn" || st === "crit") && (
+            {(st === "warn" || st === "crit" || alert === id) && (
               <g transform={`translate(${lx + 30}, ${ly - 10})`} aria-hidden>
                 <circle r="11" fill={c} />
                 <text textAnchor="middle" y="5" fontSize="15" fontWeight="700" fill="#0b1026">

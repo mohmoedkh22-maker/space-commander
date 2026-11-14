@@ -1,8 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DECISIONS } from "@/lib/game/decisions";
 import { lockReason } from "@/lib/game/engine";
 import { suhailLines } from "@/lib/game/dialogue";
+import { optionCost } from "@/lib/game/experience";
+import { explainFacilities } from "@/lib/game/consequences";
+import { BATTERY_CAP_KWH } from "@/lib/game/config";
+import { LunarBase, facilityStatus } from "../LunarBase";
+import { useCountUp } from "../experience/CountUp";
 import type { DecisionId, DecisionRecord, GameState, T } from "@/lib/game/types";
 import { CREW, UI, t } from "@/lib/i18n";
 import { RESOURCE_ORDER, resourceValue } from "@/lib/mission";
@@ -52,11 +57,14 @@ export function DecisionScreen({
   state,
   records,
   onConfirm,
+  notes = [],
 }: {
   id: DecisionId;
   state: GameState;
   records: DecisionRecord[];
   onConfirm: (optionId: string) => void;
+  /** clues the commander discovered while inspecting the base */
+  notes?: T[];
 }) {
   const { tx, beep } = useSettings();
   const d = DECISIONS[id];
@@ -75,6 +83,18 @@ export function DecisionScreen({
         {/* Left: SUHAIL + investigation */}
         <aside className="flex flex-col gap-4">
           <SuhailCorner mood="thinking" text={guidanceFor(id, state)} />
+          {notes.length > 0 && (
+            <Panel className="!p-4" style={{ borderColor: "#43d9a3aa" }}>
+              <h2 className="mb-2 font-display font-bold text-mint">📝 {tx(t("ملاحظات تحقيقك", "Your investigation notes"))}</h2>
+              <ul className="flex flex-col gap-2 text-sm leading-relaxed">
+                {notes.map((n, i) => (
+                  <li key={i} className="rounded-lg bg-space/60 px-3 py-2">
+                    🔎 {tx(n)}
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
           <Panel className="!p-4">
             <h2 className="mb-2 font-display font-bold">📋 {tx(UI.reports)}</h2>
             <div className="flex flex-col gap-2">
@@ -122,6 +142,7 @@ export function DecisionScreen({
             {d.options.map((o, i) => {
               const lock = lockReason(state, d.id, o.id);
               const selected = choice === o.id;
+              const cost = optionCost(state, d.id, o.id);
               return (
                 <label
                   key={o.id}
@@ -157,6 +178,16 @@ export function DecisionScreen({
                       <span className="text-solar">⚠ </span>
                       {tx(o.cost)}
                     </span>
+                    {cost && (
+                      <span className="mx-auto mt-1 inline-flex flex-wrap justify-center gap-x-3 gap-y-1 rounded-lg bg-space/70 px-3 py-1.5 text-xs" dir="auto">
+                        <span>
+                          ⚡ {tx(t("استهلاك اليوم", "Uses today"))}: <b dir="ltr">{Math.round(cost.useKWh)} kWh</b>
+                        </span>
+                        <span>
+                          ☀️ {tx(t("إنتاج الألواح", "Panels make"))}: <b dir="ltr">{Math.round(cost.solarKWh)} kWh</b>
+                        </span>
+                      </span>
+                    )}
                     {lock && <span className="mt-1 rounded-lg bg-coral/15 px-3 py-2 text-sm text-coral">🔒 {tx(lock)}</span>}
                   </div>
                   <span
@@ -191,12 +222,29 @@ export function DecisionScreen({
   );
 }
 
+/** Resource tile whose number visibly counts from the old value to the new one. */
+function AnimatedTile({ id, from, to, pct }: { id: (typeof RESOURCE_ORDER)[number]; from: number; to: number; pct: number }) {
+  const v = useCountUp(from, to, 1300, 700);
+  return <ResourceIndicator id={id} value={v} pct={pct} variant="tile" delta={v - from} />;
+}
+
 export function ConsequenceScreen({ record, after, onNext }: { record: DecisionRecord; after: GameState; onNext: () => void }) {
-  const { tx } = useSettings();
+  const { tx, beep } = useSettings();
   const d = DECISIONS[record.decisionId];
   const o = d.options.find((x) => x.id === record.optionId)!;
   const log = after.log[after.log.length - 1];
   const crew = CREW[o.crew.who];
+  // the base is shown as it WAS, then switches to how it IS now
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setLive(true);
+      beep("facility");
+    }, 700);
+    return () => window.clearTimeout(id);
+  }, [beep]);
+  const shown = live ? after : record.before;
+  const facilityChanges = explainFacilities(record.before, after);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
@@ -205,9 +253,26 @@ export function ConsequenceScreen({ record, after, onNext }: { record: DecisionR
       </div>
       <FancyTitle title={tx(t("نتيجة القرار", "Decision result"))} />
 
-      <div className="grid gap-5 lg:grid-cols-[260px_1fr]">
-        <div className="flex justify-center lg:items-start">
-          <SuhailBot mood="happy" size={170} />
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,420px)_1fr]">
+        <div className="flex flex-col gap-3 lg:sticky lg:top-24 lg:self-start">
+          <div className="panel relative !p-2" style={{ borderColor: live ? "#43d9a3aa" : "#4fe5ff55" }}>
+            <span className="absolute start-3 top-3 z-10 rounded-full bg-space/80 px-3 py-1 text-xs font-bold" aria-live="polite">
+              {live ? `● ${tx(t("القاعدة الآن", "Base now"))}` : `◌ ${tx(t("قبل قرارك", "Before your decision"))}`}
+            </span>
+            <LunarBase status={facilityStatus(shown)} storm={shown.flags.storm} energyPct={(shown.resources.energy / BATTERY_CAP_KWH) * 100} />
+          </div>
+          {facilityChanges.length > 0 && (
+            <ul className="flex flex-col gap-2" aria-label={tx(t("ماذا تغيّر في القاعدة", "What changed in the base"))}>
+              {facilityChanges.map((c, i) => (
+                <li key={i} className={`rounded-xl border border-holo/40 bg-space/70 px-3 py-2 text-sm ${live ? "clue-pop" : "opacity-0"}`} style={{ animationDelay: `${0.2 + i * 0.15}s` }}>
+                  🏗️ {tx(c.text)}
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="flex justify-center">
+            <SuhailBot mood="happy" size={110} />
+          </div>
         </div>
         <section className="panel flex flex-col gap-5 p-5 sm:p-7" style={{ borderColor: "#4fe5ffaa", boxShadow: "0 0 36px #4fe5ff22" }}>
           <div className="flex flex-col items-center gap-3 text-center">
@@ -224,7 +289,7 @@ export function ConsequenceScreen({ record, after, onNext }: { record: DecisionR
             {RESOURCE_ORDER.map((r) => {
               const now = resourceValue(after, r);
               const before = resourceValue(record.before, r);
-              return <ResourceIndicator key={r} id={r} value={now.value} pct={now.pct} variant="tile" delta={now.value - before.value} />;
+              return <AnimatedTile key={r} id={r} from={before.value} to={now.value} pct={now.pct} />;
             })}
           </div>
 

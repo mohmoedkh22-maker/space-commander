@@ -1,5 +1,31 @@
 # progress.md
 
+## 2026-11-14 · V0.5: Cinematic gameplay experience
+**New flow for every mission:** cinematic intro → interactive base (investigate) → decision → consequences in the world → mission debrief → next mission.
+
+**Implemented and tested in the browser (desktop 1440 px and mobile 375 px)**
+- **Mission intros** (`experience/MissionIntro.tsx`): an atmosphere layer per mission (fading Sun / water alarm and falling drops / storm streaks
+  and red alarm), title reveal, multi-speaker dialogue with crew portraits (`ScriptDialogue`: typed subtitles, Continue / Replay / Skip), objective, Start; Skip at any time
+- **Interactive base** (`experience/BaseHub.tsx`): live base map from the engine (battery gauge on the power station,
+  greenhouse light follows its condition, pulsing beacon on the facility with the emergency); 5 inspectable facilities
+  with condition, resource values, owner's report, SUHAIL's explanation and **equipment inspections that reveal clues**;
+  crew comms that react to events; "To the decision room" unlocks after enough clues (2/2/1) and, in Mission 03, the 4 engine safety steps
+- **Data-driven events** (`lib/game/experience.ts`): ENERGY_WARNING (solar forecast, Mission 01), WATER_WARNING (actual recycler fault),
+  SPACE_WEATHER (critical, Mission 03), LOW_RESERVE (energy below 150 after Mission 01), CROP_DELAY. Each has a trigger, title, description,
+  map facility, character dialogue, interaction and consequence
+- **Decision screen**: the investigation notes found by the player, and each option's real daily cost (energy used vs. panel output) computed by the engine
+- **Visible consequences**: the base map switches from "Before your decision" to "Base now" (battery gauge, greenhouse light and
+  facility statuses animate), resource tiles count to their new values, and facility changes are listed
+- **Mission debrief** (`experience/MissionResult.tsx`): status, the decision and its consequences, animated start→end resources,
+  facility conditions, crew safety, **which next-mission options will be locked or open** (computed in the exact state the player will face), and SUHAIL's closing line
+- Polish: press feedback on buttons, alert pulses, clue toasts, count-up numbers; everything respects Reduce Motion
+- Replaced the old FaultEvent / StormEvent / SafetyScreen in the flow (the components still exist); engine and endings unchanged
+- Tests: **52 passing** (12 new in `experience.test.ts`: event triggers, inspection conditions, clues, option costs from the engine, carried locks)
+
+**Not done / limits**
+- Character expressions are portrait art with pulses and mood badges; eyes and mouths are not animated (no layered art)
+- Clues are not saved with session progress (resuming keeps decisions, not clues)
+
 ## 2026-11-14 · V0.4 (revised spec): Decision & simulation engine
 **Done**
 - GameState restructured to the spec: `resources{energy,water,oxygen,food}`, `facilities{powerStation,waterRecycling,greenhouse,lifeSupport,shelter}`,
