@@ -5,7 +5,8 @@ import type { Choices, DecisionId } from "@/lib/game/types";
 import { Toolbar } from "./Hud";
 import { LunarBaseScreen, MissionBriefing } from "./mission/MissionBriefing";
 import { MissionHUD } from "./mission/MissionHUD";
-import { SettingsProvider } from "./settings";
+import { CinematicIntro } from "./cinematic/CinematicIntro";
+import { SettingsProvider, useSettings } from "./settings";
 import { Splash } from "./screens/Intro";
 import { DayScreen, FaultEvent, SafetyScreen, StormEvent } from "./screens/Mission";
 import { ConsequenceScreen, DecisionScreen } from "./mission/DecisionCards";
@@ -13,7 +14,7 @@ import { OutcomeScreen, ReportScreen } from "./screens/Outcome";
 import { ScienceScreen } from "./screens/Science";
 import { WhatIfLab, type LabResult } from "./screens/WhatIfLab";
 
-type Screen = "splash" | "briefing" | "tour" | "play" | "outcome" | "lab" | "report";
+type Screen = "splash" | "intro" | "briefing" | "tour" | "play" | "outcome" | "lab" | "report";
 
 export default function Game() {
   return (
@@ -24,6 +25,7 @@ export default function Game() {
 }
 
 function GameInner() {
+  const { introDone, set } = useSettings();
   const [screen, setScreen] = useState<Screen>("splash");
   const [science, setScience] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
@@ -56,7 +58,31 @@ function GameInner() {
   };
 
   if (science) return <ScienceScreen onBack={() => setScience(false)} />;
-  if (screen === "splash") return <Splash onStart={() => setScreen("briefing")} onScience={() => setScience(true)} />;
+  if (screen === "splash")
+    return (
+      <Splash
+        // First visit: the cinematic. Returning players go straight to the mission.
+        onStart={() => setScreen(introDone ? "play" : "intro")}
+        onReplayIntro={() => setScreen("intro")}
+        onGuide={() => setScreen("briefing")}
+        onScience={() => setScience(true)}
+      />
+    );
+  if (screen === "intro")
+    return (
+      <CinematicIntro
+        onFinish={() => {
+          set({ introDone: true });
+          // Day 1 was just shown in the cinematic, so open on the first decision.
+          if (stepIndex === 0) setStepIndex(1);
+          setScreen("play");
+        }}
+        onSkip={() => {
+          set({ introDone: true });
+          setScreen("play");
+        }}
+      />
+    );
   if (screen === "briefing") return <MissionBriefing onDone={() => setScreen("tour")} />;
   if (screen === "tour") return <LunarBaseScreen onDone={() => setScreen("play")} onScience={() => setScience(true)} />;
 

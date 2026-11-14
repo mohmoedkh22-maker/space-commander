@@ -7,13 +7,14 @@ export const SETTINGS_TEXT = {
   settings: t("الإعدادات", "Settings"),
   close: t("إغلاق", "Close"),
   language: t("اللغة", "Language"),
+  music: t("الموسيقى والأجواء (المقدمة)", "Music & ambience (intro)"),
   on: t("مفعّل", "On"),
   off: t("متوقف", "Off"),
   soundNote: t("أصوات واجهة قصيرة وخفيفة. كل الحوارات مكتوبة أيضًا.", "Short, soft interface sounds. All dialogue is also shown as text."),
 };
 
 export function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { tx, lang, set, sound, reducedMotion, bigText, beep } = useSettings();
+  const { tx, lang, set, sound, music, reducedMotion, bigText, beep } = useSettings();
   return (
     <Modal open={open} onClose={onClose} title={tx(SETTINGS_TEXT.settings)} closeLabel={tx(SETTINGS_TEXT.close)}>
       <div className="flex flex-col gap-3">
@@ -44,6 +45,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
           }}
         />
         <p className="-mt-1 px-1 text-sm text-moon">{tx(SETTINGS_TEXT.soundNote)}</p>
+        <Switch label={`🎵 ${tx(SETTINGS_TEXT.music)}`} checked={music} on={tx(SETTINGS_TEXT.on)} off={tx(SETTINGS_TEXT.off)} onChange={(v) => set({ music: v })} />
         <Switch label={`🎞 ${tx(UI.motion)}`} checked={reducedMotion} on={tx(SETTINGS_TEXT.on)} off={tx(SETTINGS_TEXT.off)} onChange={(v) => set({ reducedMotion: v })} />
         <Switch label={`🔠 ${tx(UI.bigText)}`} checked={bigText} on={tx(SETTINGS_TEXT.on)} off={tx(SETTINGS_TEXT.off)} onChange={(v) => set({ bigText: v })} />
       </div>

@@ -1,24 +1,37 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { Lang, T } from "@/lib/game/types";
+import { sfx, type Sfx } from "@/lib/audio";
 
 interface Settings {
   lang: Lang;
+  /** interface sound effects */
   sound: boolean;
+  /** cinematic ambience + music */
+  music: boolean;
   reducedMotion: boolean;
   bigText: boolean;
+  /** onboarding: the cinematic introduction was completed or skipped */
+  introDone: boolean;
 }
 interface Ctx extends Settings {
   set: (p: Partial<Settings>) => void;
   tx: (x: T) => string;
-  beep: (kind?: "ok" | "alert" | "soft") => void;
+  beep: (kind?: Sfx) => void;
 }
 
 const SettingsContext = createContext<Ctx | null>(null);
 const KEY = "space-commander-settings";
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [s, setS] = useState<Settings>({ lang: "ar", sound: false, reducedMotion: false, bigText: false });
+  const [s, setS] = useState<Settings>({
+    lang: "ar",
+    sound: false,
+    music: false,
+    reducedMotion: false,
+    bigText: false,
+    introDone: false,
+  });
 
   useEffect(() => {
     try {
@@ -41,26 +54,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const set = useCallback((p: Partial<Settings>) => setS((prev) => ({ ...prev, ...p })), []);
   const tx = useCallback((x: T) => x[s.lang], [s.lang]);
 
-  // Tiny synthesized UI sounds (no audio files); off by default.
+  // Synthesized UI sounds (original, no audio files); off by default.
   const beep = useCallback(
-    (kind: "ok" | "alert" | "soft" = "soft") => {
-      if (!s.sound || typeof window === "undefined") return;
+    (kind: Sfx = "soft") => {
+      if (!s.sound) return;
       try {
-        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AC();
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        const f = kind === "ok" ? [660, 990] : kind === "alert" ? [440, 330] : [520, 620];
-        o.type = "sine";
-        o.frequency.setValueAtTime(f[0], ctx.currentTime);
-        o.frequency.linearRampToValueAtTime(f[1], ctx.currentTime + 0.18);
-        g.gain.setValueAtTime(0.0001, ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
-        o.connect(g).connect(ctx.destination);
-        o.start();
-        o.stop(ctx.currentTime + 0.32);
-        o.onended = () => ctx.close();
+        sfx(kind);
       } catch {}
     },
     [s.sound],

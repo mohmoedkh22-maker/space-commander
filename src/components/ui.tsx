@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { CREW } from "@/lib/i18n";
 import type { CrewId, T } from "@/lib/game/types";
 import { Portrait } from "./Portrait";
@@ -12,7 +12,7 @@ export function Button({
   size = "md",
   className = "",
   ...p
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: "md" | "lg" }) {
+}: React.ComponentProps<"button"> & { variant?: Variant; size?: "md" | "lg" }) {
   const styles: Record<Variant, string> = {
     // Main call to action: glowing orange pill, as in the approved Cosmic Discovery mockups
     primary:

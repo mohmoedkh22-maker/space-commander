@@ -10,6 +10,8 @@ import { SETTINGS_TEXT, SettingsModal } from "../SettingsModal";
 const MENU = {
   nav: t("القائمة الرئيسية", "Main menu"),
   story: t("القصة", "Story"),
+  replay: t("إعادة المقدمة", "Replay intro"),
+  guide2: t("الطاقم والقاعدة", "Crew & base"),
   guide: t("الدليل العلمي", "Science Guide"),
   startMission: t("ابدأ المهمة", "START MISSION"),
   greet: t("مرحبًا أيها القائد! القاعدة SELENE-1 بانتظارك.", "Hello, Commander! SELENE-1 is waiting for you."),
@@ -39,7 +41,17 @@ const MENU = {
   close: t("إغلاق", "Close"),
 };
 
-export function Splash({ onStart, onScience }: { onStart: () => void; onScience: () => void }) {
+export function Splash({
+  onStart,
+  onScience,
+  onReplayIntro,
+  onGuide,
+}: {
+  onStart: () => void;
+  onScience: () => void;
+  onReplayIntro?: () => void;
+  onGuide?: () => void;
+}) {
   const { tx, lang, set, beep } = useSettings();
   const [story, setStory] = useState(false);
   const [settings, setSettings] = useState(false);
@@ -62,6 +74,16 @@ export function Splash({ onStart, onScience }: { onStart: () => void; onScience:
           <button className={navBtn} onClick={() => setStory(true)} aria-haspopup="dialog">
             📖 {tx(MENU.story)}
           </button>
+          {onReplayIntro && (
+            <button className={navBtn} onClick={onReplayIntro}>
+              🎬 {tx(MENU.replay)}
+            </button>
+          )}
+          {onGuide && (
+            <button className={navBtn} onClick={onGuide}>
+              👩‍🚀 {tx(MENU.guide2)}
+            </button>
+          )}
           <button className={navBtn} onClick={onScience}>
             🛰 {tx(MENU.guide)}
           </button>
