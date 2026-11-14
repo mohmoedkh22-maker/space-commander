@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { DECISIONS } from "@/lib/game/decisions";
-import type { DayLog, DecisionId, DecisionRecord, GameState, T } from "@/lib/game/types";
+import type { DayLog, DecisionRecord, GameState, T } from "@/lib/game/types";
 import { ILLUMINATION } from "@/lib/nasa/illumination";
 import { SCENARIO_LIGHT_FACTOR } from "@/lib/game/config";
 import { UI, t } from "@/lib/i18n";
@@ -10,155 +10,13 @@ import { useSettings } from "../settings";
 import { SuhailSays, type Mood } from "../Suhail";
 import { Button, CrewSays, Delta, Panel, ScreenTitle } from "../ui";
 
-const MISSION_NAMES: Record<number, T> = {
+export const MISSION_NAMES: Record<number, T> = {
   1: t("المهمة 01 — الشمس التي تختفي", "Mission 01 — The Vanishing Sun"),
   2: t("المهمة 02 — القطرة الأخيرة", "Mission 02 — The Last Drop"),
   3: t("المهمة 03 — الإشارة الأخيرة", "Mission 03 — The Final Signal"),
 };
 
-export function DecisionScreen({
-  id,
-  state,
-  records,
-  onConfirm,
-}: {
-  id: DecisionId;
-  state: GameState;
-  records: DecisionRecord[];
-  onConfirm: (optionId: string) => void;
-}) {
-  const { tx, beep } = useSettings();
-  const d = DECISIONS[id];
-  const [openReports, setOpenReports] = useState<Set<number>>(new Set());
-  const [choice, setChoice] = useState<string | null>(null);
-  const [showHint, setShowHint] = useState(false);
-
-  return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
-      <ScreenTitle kicker={`${tx(MISSION_NAMES[d.mission])} · ${tx(UI.day)} ${d.day}`} title={tx(d.title)} />
-      <div className="grid gap-4 lg:grid-cols-[1fr_1.1fr]">
-        <div className="flex flex-col gap-4">
-          <Panel className="!p-2">
-            <LunarBase status={facilityStatus(state)} storm={state.flags.storm} />
-          </Panel>
-          <Panel>
-            <p className="text-lg leading-relaxed">{tx(d.problem)}</p>
-          </Panel>
-          {id === "d1-energy" && <NasaLightCard day={d.day} />}
-          {id !== "d1-energy" && (
-            <Panel>
-              <h2 className="mb-1 font-display font-bold text-holo">🔬 {tx(t("لحظة علمية", "Science moment"))}</h2>
-              <p className="leading-relaxed">{tx(d.science)}</p>
-            </Panel>
-          )}
-          {id === "d3-emergency" && records.length > 0 && <MiniTimeline records={records} />}
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <Panel>
-            <h2 className="mb-3 font-display font-bold">📋 {tx(UI.reports)}</h2>
-            <div className="flex flex-col gap-2">
-              {d.reports.map((r, i) => {
-                const open = openReports.has(i);
-                return (
-                  <div key={i} className="rounded-xl border border-holo/20">
-                    <button
-                      className="flex w-full items-center justify-between px-4 py-3 text-start"
-                      aria-expanded={open}
-                      onClick={() => {
-                        beep("soft");
-                        setOpenReports((s) => {
-                          const n = new Set(s);
-                          if (n.has(i)) n.delete(i);
-                          else n.add(i);
-                          return n;
-                        });
-                      }}
-                    >
-                      <span>{tx(r.title)}</span>
-                      <span aria-hidden>{open ? "−" : "+"}</span>
-                    </button>
-                    {open && <p className="px-4 pb-3 text-moon anim-rise">{tx(r.body(state))}</p>}
-                  </div>
-                );
-              })}
-            </div>
-          </Panel>
-
-          <fieldset className="panel p-5">
-            <legend className="sr-only">{tx(UI.options)}</legend>
-            <h2 className="mb-3 font-display font-bold">{tx(UI.options)}</h2>
-            <div className="flex flex-col gap-3">
-              {d.options.map((o, i) => {
-                const lock = o.locked?.(state) ?? null;
-                const selected = choice === o.id;
-                return (
-                  <label
-                    key={o.id}
-                    className={`block cursor-pointer rounded-2xl border-2 p-4 transition ${
-                      lock ? "cursor-not-allowed border-moon/20 opacity-60" : selected ? "border-holo bg-holo/10" : "border-holo/20 hover:border-holo/60"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={d.id}
-                      className="sr-only"
-                      disabled={!!lock}
-                      checked={selected}
-                      onChange={() => {
-                        beep("soft");
-                        setChoice(o.id);
-                      }}
-                    />
-                    <span className="flex items-start gap-3">
-                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-cosmic font-display font-bold" aria-hidden>
-                        {String.fromCharCode(65 + i)}
-                      </span>
-                      <span className="flex-1">
-                        <b className="block text-lg">{tx(o.label)}</b>
-                        <span className="mt-1 block text-sm">
-                          <span className="text-mint">✔ {tx(UI.benefit)}:</span> {tx(o.benefit)}
-                        </span>
-                        <span className="block text-sm">
-                          <span className="text-solar">⚠ {tx(UI.cost)}:</span> {tx(o.cost)}
-                        </span>
-                        {lock && (
-                          <span className="mt-2 block rounded-lg bg-coral/15 px-3 py-2 text-sm text-coral">
-                            🔒 {tx(UI.locked)} — {tx(lock)}
-                          </span>
-                        )}
-                      </span>
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </fieldset>
-
-          {showHint ? (
-            <SuhailSays compact mood="thinking" text={d.hint} />
-          ) : (
-            <Button variant="ghost" onClick={() => setShowHint(true)}>
-              💡 {tx(UI.hint)}
-            </Button>
-          )}
-          <Button
-            disabled={!choice}
-            onClick={() => {
-              if (!choice) return;
-              beep("ok");
-              onConfirm(choice);
-            }}
-          >
-            {tx(UI.confirm)}
-          </Button>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-function NasaLightCard({ day }: { day: number }) {
+export function NasaLightCard({ day }: { day: number }) {
   const { tx } = useSettings();
   const pct = (ILLUMINATION.fraction * 100).toFixed(1);
   const todayPct = (ILLUMINATION.fraction * (SCENARIO_LIGHT_FACTOR[day] ?? 1) * 100).toFixed(0);
@@ -192,7 +50,7 @@ function NasaLightCard({ day }: { day: number }) {
   );
 }
 
-function MiniTimeline({ records }: { records: DecisionRecord[] }) {
+export function MiniTimeline({ records }: { records: DecisionRecord[] }) {
   const { tx } = useSettings();
   return (
     <Panel>
@@ -265,40 +123,6 @@ function DeltaTable({ before, after }: { before: GameState; after: GameState }) 
         ))}
       </ul>
     </Panel>
-  );
-}
-
-export function ConsequenceScreen({
-  record,
-  after,
-  onNext,
-}: {
-  record: DecisionRecord;
-  after: GameState;
-  onNext: () => void;
-}) {
-  const { tx } = useSettings();
-  const d = DECISIONS[record.decisionId];
-  const o = d.options.find((x) => x.id === record.optionId)!;
-  const log = after.log[after.log.length - 1];
-  return (
-    <main className="mx-auto max-w-5xl px-4 py-6">
-      <ScreenTitle kicker={`${tx(UI.yourChoice)}: ${tx(o.label)}`} title={tx(t("نتيجة قرارك", "Your decision's result"))} />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="flex flex-col gap-4">
-          <Panel className="!p-2">
-            <LunarBase status={facilityStatus(after)} storm={after.flags.storm} />
-          </Panel>
-          <CrewSays who={o.crew.who} text={o.crew.text} />
-        </div>
-        <div className="flex flex-col gap-4">
-          <DeltaTable before={record.before} after={after} />
-          {log && <DayResultCard log={log} />}
-          <SuhailSays mood="thinking" text={o.suhail} />
-          <Button onClick={onNext}>{tx(UI.continue)}</Button>
-        </div>
-      </div>
-    </main>
   );
 }
 

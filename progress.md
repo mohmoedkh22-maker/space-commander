@@ -1,5 +1,16 @@
 # progress.md
 
+## 2026-11-14 · Illustrated decision cards (from the team mockups)
+- New `src/components/mission/DecisionCards.tsx`: decision and result screens redesigned after the team's two mockups
+  - Step indicator Investigate → Decide → Result; centred title with orange flourishes; the problem as the subtitle
+  - SUHAIL on the side with his hint bubble; reports, the NASA or science moment and the decision timeline stay in the side column
+  - Option cards: illustration (`OptionArt`: team art scene + glowing action icon), A–D letter, benefit/cost and a selection circle;
+    the selected card glows orange; locked cards are greyed out and show the reason; large orange "Confirm choice"
+  - Result: green badge with the choice, SUHAIL's explanation, 4 resource tiles with the change (e.g. −108 kWh, +15%), the crew line with portrait, and the day's energy
+- `public/art/greenhouse.png` cropped from the decision mockup
+- Old decision and consequence screens removed from `screens/Mission.tsx`
+- Checked: full playthrough to an ending (locks on Day 3 and Day 5 shown correctly), desktop 1440 px and mobile 375 px, no console errors
+
 ## 2026-11-14 · Team art integrated (Cosmic Discovery)
 - Cropped from the team's visual identity board (column B, the recommended direction) into `public/art/`:
   hero, SUHAIL, Layan, Adam, Mira, Rashid, SELENE-1 base. The crop script is in the session scratchpad; the art source is the team board image
