@@ -1,0 +1,151 @@
+import type { CrewId, EndingId, Lang, T } from "@/lib/game/types";
+
+export const t = (ar: string, en: string): T => ({ ar, en });
+export const tr = (x: T, lang: Lang) => x[lang];
+
+export const CREW: Record<CrewId, { name: T; role: T; color: string; initial: string }> = {
+  layan: { name: t("ليان", "Layan"), role: t("أخصائية دعم الحياة", "Life Support Specialist"), color: "#50e3f0", initial: "L" },
+  adam: { name: t("آدم", "Adam"), role: t("مهندس الطاقة", "Energy Engineer"), color: "#ffad4d", initial: "A" },
+  mira: { name: t("ميرا", "Mira"), role: t("عالمة نبات فضائية", "Space Botanist"), color: "#43d9a3", initial: "M" },
+  rashed: { name: t("راشد", "Rashed"), role: t("ضابط السلامة والعمليات", "Safety & Operations"), color: "#8c78ff", initial: "R" },
+};
+
+export const UI = {
+  title: t("قائد الفضاء", "SPACE COMMANDER"),
+  op: t("عملية ضوء القمر", "OPERATION MOONLIGHT"),
+  tagline: t("فكّر كرائد فضاء. قُد كقائد.", "Think like an astronaut. Lead like a commander."),
+  start: t("ابدأ مهمتي", "Start my mission"),
+  next: t("التالي", "Next"),
+  continue: t("متابعة", "Continue"),
+  back: t("رجوع", "Back"),
+  confirm: t("أؤكّد القرار", "Confirm decision"),
+  day: t("اليوم", "Day"),
+  mission: t("المهمة", "Mission"),
+  energy: t("الطاقة", "Energy"),
+  water: t("الماء", "Water"),
+  oxygen: t("الأكسجين", "Oxygen"),
+  food: t("المحاصيل", "Crops"),
+  science: t("العلم والمصادر", "Science & sources"),
+  sound: t("الصوت", "Sound"),
+  motion: t("تقليل الحركة", "Reduce motion"),
+  bigText: t("تكبير النص", "Larger text"),
+  lang: t("English", "العربية"),
+  reports: t("افتح التقارير قبل أن تقرّر", "Open the reports before you decide"),
+  options: t("الخيارات", "Your options"),
+  benefit: t("الفائدة", "Benefit"),
+  cost: t("التكلفة", "Cost"),
+  locked: t("غير متاح", "Not available"),
+  hint: t("تلميح من سهيل", "SUHAIL's hint"),
+  nasaFact: t("لحظة علمية — بيانات ناسا", "Science moment — NASA data"),
+  whatChanged: t("ماذا تغيّر اليوم؟", "What changed today?"),
+  why: t("لماذا؟", "Why?"),
+  solar: t("إنتاج الألواح", "Solar produced"),
+  used: t("استهلاك القاعدة", "Base used"),
+  shed: t("سهيل أطفأ تلقائيًا لحماية دعم الحياة:", "SUHAIL automatically switched off to protect life support:"),
+  shedNames: {
+    research: t("الأبحاث", "research"),
+    greenhouse: t("جزء من المزرعة", "part of the greenhouse"),
+    recyclerBoost: t("التشغيل الإضافي للمدوّر", "the recycler boost"),
+  } as Record<string, T>,
+  tourTitle: t("تعرّف على قاعدتك", "Meet your base"),
+  tourHint: t("اضغط على أي مبنى (أو استخدم الأزرار) لتعرف وظيفته.", "Tap any building (or use the buttons) to learn what it does."),
+  tourDone: t("لنبدأ يومنا الأول", "Let's begin Day 1"),
+  safetyTitle: t("إجراءات السلامة أولًا", "Safety steps first"),
+  safetyItems: [
+    t("إيقاف الأعمال الخارجية", "Stop all outside work"),
+    t("إعادة الطاقم إلى الداخل", "Bring the crew inside"),
+    t("التأكد من جاهزية المأوى", "Check the shelter is ready"),
+    t("مراجعة الأنظمة الحيوية", "Check vital systems"),
+  ],
+  safetyWarn: t(
+    "بعض القرارات ليست مفاضلة بين نقاط. سلامة الطاقم تأتي أولًا — أكمل كل الخطوات.",
+    "Some decisions aren't a trade-off between points. Crew safety comes first — complete every step.",
+  ),
+  outcome: t("نتيجة المهمة", "Mission outcome"),
+  openLab: t("ادخل مختبر ماذا لو؟", "Enter the What If Lab"),
+  report: t("تقرير القائد", "Commander report"),
+  playAgain: t("العب من جديد", "Play again"),
+  labTitle: t("مختبر ماذا لو؟", "WHAT IF LAB"),
+  labIntro: t(
+    "ما السؤال الذي يجعل العلماء يكتشفون أشياء جديدة؟ ماذا لو؟ اختر قرارًا سابقًا وجرّب بديلًا.",
+    "What question helps scientists discover new things? What if? Pick an earlier decision and test an alternative.",
+  ),
+  pickDecision: t("1. اختر قرارًا من خطك الزمني", "1. Pick a decision from your timeline"),
+  pickAlt: t("2. اختر قرارًا بديلًا", "2. Choose a different option"),
+  predict: t("3. توقّع: ماذا سيحدث للطاقة في نهاية المهمة؟", "3. Predict: what happens to energy at the end of the mission?"),
+  more: t("أكثر", "More"),
+  same: t("تقريبًا نفسها", "About the same"),
+  less: t("أقل", "Less"),
+  runExperiment: t("شغّل التجربة", "Run the experiment"),
+  original: t("المسار الأصلي", "Original timeline"),
+  alternative: t("المسار البديل", "Alternative timeline"),
+  predRight: t("توقّعك كان صحيحًا! هكذا يختبر العلماء فرضياتهم.", "Your prediction was right! That's how scientists test a hypothesis."),
+  predWrong: t("النتيجة فاجأتنا! المفاجآت في التجارب تعلّمنا أكثر.", "The result surprised us! Surprises in experiments teach us the most."),
+  forced: t("في هذا المسار، تغيّر خيار لاحق لأنه لم يعد متاحًا:", "In this timeline a later choice had to change because it was no longer available:"),
+  ending: t("النهاية", "Ending"),
+  tryAnother: t("جرّب تجربة أخرى", "Try another experiment"),
+  yourChoice: t("اخترت", "You chose"),
+  quizTitle: t("سؤال القائد الأخير", "Commander's final question"),
+  quizQ: t(
+    "قاعدة أخرى لديها غذاء يكفي لفترة طويلة، لكن احتياطي الكهرباء منخفض. أي مورد يجب أن نراقبه أولًا؟",
+    "Another base has food for a long time, but its power reserve is low. Which resource should we watch first?",
+  ),
+  quizOpts: [t("الكهرباء", "Electricity"), t("الغذاء", "Food"), t("لا شيء", "Nothing")],
+  quizRight: t(
+    "صحيح! الكهرباء تشغّل دعم الحياة وتدوير الماء والمزرعة. عندما تنخفض، تتأثر كل الأنظمة الأخرى.",
+    "Right! Power runs life support, water recycling and the greenhouse. When it drops, every other system is affected.",
+  ),
+  quizWrong: t(
+    "فكّر مرة أخرى: ما المورد الذي تحتاجه كل الأنظمة الأخرى لتعمل؟",
+    "Think again: which resource do all the other systems need to work?",
+  ),
+  learned: t("ما الذي استكشفته", "What you explored"),
+  concepts: [
+    t("إنتاج الطاقة الشمسية وتخزينها في البطاريات", "Making solar power and storing it in batteries"),
+    t("الأولويات والتكلفة البديلة", "Priorities and trade-offs"),
+    t("ترابط الماء والطاقة والغذاء", "How water, power and food are linked"),
+    t("تشخيص الأعطال قبل صرف الموارد", "Diagnosing problems before spending resources"),
+    t("إدارة المخاطر وسلامة الطاقم", "Risk management and crew safety"),
+    t("صياغة الفرضيات واختبارها", "Making and testing a hypothesis"),
+  ],
+  finalLine: t(
+    "فكّر كرائد فضاء. قُد كقائد. كل قرار مهم. كل مهمة تعلّم.",
+    "Think like an astronaut. Lead like a commander. Every decision matters. Every mission teaches.",
+  ),
+  keyDecisions: t("قراراتك الثلاثة الأهم", "Your three key decisions"),
+  crewSafe: t("الطاقم آمن", "Crew safe"),
+  newQuestion: t(
+    "سؤال لك: لو كانت قاعدتك في فوهة مظلمة دائمًا، كيف ستحصل على الطاقة؟",
+    "A question for you: if your base were inside a crater that is always dark, how would you get power?",
+  ),
+};
+
+export const ENDINGS: Record<EndingId, { badge: T; title: T; suhail: T; color: string }> = {
+  A: {
+    badge: t("تم إنجاز المهمة", "MISSION ACCOMPLISHED"),
+    title: t("الطاقم آمن، والأنظمة مستقرة، والأهداف تحققت", "Crew safe, systems stable, goals achieved"),
+    suhail: t(
+      "أنجزنا المهمة! لم يكن النجاح لأن مواردنا غير محدودة، بل لأننا فهمنا أولوياتنا واستعددنا للمشكلات قبل أن تكبر.",
+      "We did it! Not because our resources were unlimited — but because we understood our priorities and prepared before problems grew.",
+    ),
+    color: "#43d9a3",
+  },
+  B: {
+    badge: t("الطاقم آمن — أهداف أقل", "CREW SAFE — OBJECTIVES REDUCED"),
+    title: t("حمينا الطاقم، لكن بعض الأعمال تأجلت", "We protected the crew, but some work was postponed"),
+    suhail: t(
+      "لم نحقق كل أهدافنا العلمية هذه المرة، لكننا حافظنا على سلامة الطاقم. والآن لدينا فرصة لفهم كيف كان يمكن تحسين خطتنا.",
+      "We didn't reach every science goal this time, but the crew stayed safe. Now we can explore how our plan could have been better.",
+    ),
+    color: "#ffad4d",
+  },
+  C: {
+    badge: t("توقفت المهمة — الطاقم محمي", "MISSION INTERRUPTED — CREW PROTECTED"),
+    title: t("أوقفنا الأبحاث مبكرًا لحماية الأنظمة الأساسية", "Research stopped early to protect vital systems"),
+    suhail: t(
+      "فعّلنا خطة الحفاظ على الأنظمة الأساسية. تعلّمنا أن القرار الذي يبدو مناسبًا في البداية قد يغيّر خياراتنا في النهاية.",
+      "We switched to protecting vital systems. We learned that a choice that seems fine early on can change our options at the end.",
+    ),
+    color: "#8c78ff",
+  },
+};
