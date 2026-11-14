@@ -1,5 +1,11 @@
 # progress.md
 
+## 2026-11-14 · Release v1.0.0: Cinematic introduction
+- 7-scene cinematic (`src/components/cinematic/`), procedural audio (`src/lib/audio.ts`), bilingual script (`src/lib/cinematicScript.ts`)
+- Onboarding saved in settings (`introDone`); Skip, Esc and Replay intro; Sound and Music toggles
+- Tested: full sequence, dialogue Continue and Replay, Skip, returning player, Arabic and English, desktop 1440 px and mobile 375 px, no console errors
+- Release notes: see `CHANGELOG.md`. Git tag `v1.0.0`
+
 ## 2026-11-14 · Illustrated decision cards (from the team mockups)
 - New `src/components/mission/DecisionCards.tsx`: decision and result screens redesigned after the team's two mockups
   - Step indicator Investigate → Decide → Result; centred title with orange flourishes; the problem as the subtitle

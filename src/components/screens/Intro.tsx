@@ -2,6 +2,7 @@
 "use client";
 import { useState } from "react";
 import { UI, t } from "@/lib/i18n";
+import pkg from "../../../package.json";
 import { useSettings } from "../settings";
 import { Button, Modal, PlaceholderTag } from "../ui";
 import { LunarHorizon, OrbitStarLogo } from "../Brand";
@@ -134,7 +135,9 @@ export function Splash({
       </main>
 
       <footer className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 pb-4 text-sm text-moon">
-        <span>{tx(MENU.credit)}</span>
+        <span>
+          {tx(MENU.credit)} · <span dir="ltr">v{pkg.version}</span>
+        </span>
         <PlaceholderTag text={tx(MENU.placeholder)} />
       </footer>
 
