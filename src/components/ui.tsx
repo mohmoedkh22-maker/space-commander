@@ -2,6 +2,7 @@
 import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { CREW } from "@/lib/i18n";
 import type { CrewId, T } from "@/lib/game/types";
+import { Portrait } from "./Portrait";
 import { useSettings } from "./settings";
 
 type Variant = "primary" | "ghost" | "violet" | "solar";
@@ -13,7 +14,9 @@ export function Button({
   ...p
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: "md" | "lg" }) {
   const styles: Record<Variant, string> = {
-    primary: "bg-cosmic text-white hover:brightness-110 shadow-[0_0_24px_#326bff66]",
+    // Main call to action: glowing orange pill, as in the approved Cosmic Discovery mockups
+    primary:
+      "rounded-full border-2 border-[#ffd59a] bg-gradient-to-b from-[#ffb85c] to-[#f08a1c] text-space hover:brightness-110 shadow-[0_0_28px_#ffad4d88]",
     ghost: "border border-holo/40 text-lunar hover:border-holo hover:bg-holo/10",
     violet: "bg-violet text-white hover:brightness-110 shadow-[0_0_24px_#8c78ff66]",
     // Main "confirm / next" call to action, matching the approved mockups (glowing orange pill)
@@ -136,13 +139,7 @@ export function CrewSays({ who, text }: { who: CrewId; text: T }) {
   const c = CREW[who];
   return (
     <div className="flex items-center gap-3 anim-rise">
-      <div
-        className="grid size-12 shrink-0 place-items-center rounded-full font-display text-lg font-bold text-space"
-        style={{ background: c.color }}
-        aria-hidden
-      >
-        {c.initial}
-      </div>
+      <Portrait id={who} size={64} />
       <p className="panel px-4 py-2" style={{ borderColor: c.color + "66" }}>
         <b style={{ color: c.color }}>{tx(c.name)}:</b> “{tx(text)}”
       </p>

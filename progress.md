@@ -1,5 +1,14 @@
 # progress.md
 
+## 2026-11-14 · Team art integrated (Cosmic Discovery)
+- Cropped from the team's visual identity board (column B, the recommended direction) into `public/art/`:
+  hero, SUHAIL, Layan, Adam, Mira, Rashid, SELENE-1 base. The crop script is in the session scratchpad; the art source is the team board image
+- Start screen: hero art (young commander + SUHAIL + SELENE-1) replaces the vector title; orange glowing START MISSION
+- SUHAIL everywhere now uses the board art in a glowing ring, with a mood badge (? curious, … thinking, ! warning, ★ happy)
+- Crew cards and crew lines use the portraits (`Portrait` component) with identity-colour rings
+- Briefing step 1 shows the SELENE-1 base art; primary buttons use the orange pill style from the mockups
+- Limitation: crops come from a 1536 px board, so they are low resolution. Replace the files in `public/art/` with the designer's originals (same names) for sharp art
+
 ## 2026-11-14 · V0.3: Lunar base & mission briefing
 **Done**
 - `MissionBriefing`: 4 steps with a step indicator (Mission → Commander → Crew → Resources → Base) introducing Operation Moonlight,

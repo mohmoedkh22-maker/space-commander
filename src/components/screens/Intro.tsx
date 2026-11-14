@@ -1,9 +1,9 @@
+/* eslint-disable @next/next/no-img-element -- static export, small local art */
 "use client";
 import { useState } from "react";
 import { UI, t } from "@/lib/i18n";
 import { useSettings } from "../settings";
-import { SuhailBot } from "../Suhail";
-import { Button, Kicker, Modal, PlaceholderTag } from "../ui";
+import { Button, Modal, PlaceholderTag } from "../ui";
 import { LunarHorizon, OrbitStarLogo } from "../Brand";
 import { SETTINGS_TEXT, SettingsModal } from "../SettingsModal";
 
@@ -14,8 +14,8 @@ const MENU = {
   startMission: t("ابدأ المهمة", "START MISSION"),
   greet: t("مرحبًا أيها القائد! القاعدة SELENE-1 بانتظارك.", "Hello, Commander! SELENE-1 is waiting for you."),
   placeholder: t(
-    "رسومات مؤقتة — الشعار والشخصيات النهائية من فريق التصميم",
-    "Temporary artwork — final logo & characters by the design team",
+    "الرسومات من لوحة الهوية البصرية لفريق سهيل (Cosmic Discovery)",
+    "Art from Team SUHAIL's visual identity board (Cosmic Discovery)",
   ),
   credit: t(
     "فريق سهيل — تحدي ناسا لتطبيقات الفضاء 2026",
@@ -75,16 +75,29 @@ export function Splash({ onStart, onScience }: { onStart: () => void; onScience:
       </header>
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center gap-6 px-4 pb-6 text-center">
-        <div className="anim-rise flex flex-col items-center">
-          <OrbitStarLogo size={128} />
-          <h1 className="mt-2 font-display text-5xl font-bold tracking-tight drop-shadow-[0_4px_24px_#326bff88] sm:text-7xl lg:text-8xl">
-            {tx(UI.title)}
+        <div className="anim-rise flex w-full flex-col items-center">
+          <h1 className="sr-only">
+            {tx(UI.title)} — {tx(UI.op)}
           </h1>
-          <Kicker className="mt-3 !tracking-[0.4em] text-base sm:text-lg">{tx(UI.op)}</Kicker>
-          <p className="mt-3 text-lg text-lunar/90 sm:text-xl">{tx(UI.tagline)}</p>
+          <div className="w-full max-w-4xl overflow-hidden rounded-[28px] border-2 border-holo/50 shadow-[0_0_60px_#4fe5ff44]">
+            <img
+              src="/art/hero.png"
+              width={489}
+              height={258}
+              className="block h-auto w-full"
+              alt={tx(
+                t(
+                  "قائد الفضاء — عملية ضوء القمر: القائدة الصغيرة وسهيل وقاعدة SELENE-1 على القمر",
+                  "SPACE COMMANDER — Operation Moonlight: the young commander, SUHAIL and the SELENE-1 base on the Moon",
+                ),
+              )}
+            />
+          </div>
+          <p className="mt-4 text-lg text-lunar/90 sm:text-xl">{tx(UI.tagline)}</p>
         </div>
 
         <Button
+          variant="solar"
           size="lg"
           onClick={() => {
             beep("ok");
@@ -96,13 +109,6 @@ export function Splash({ onStart, onScience }: { onStart: () => void; onScience:
           🚀 {tx(MENU.startMission)}
         </Button>
 
-        <div className="anim-rise flex max-w-md items-end gap-3 self-center text-start">
-          <SuhailBot mood="happy" size={84} />
-          <p className="panel px-4 py-3 text-base sm:text-lg" style={{ borderColor: "#50e3f055" }}>
-            <span className="mb-0.5 block font-display text-xs font-bold tracking-widest text-holo">SUHAIL · سهيل</span>
-            {tx(MENU.greet)}
-          </p>
-        </div>
       </main>
 
       <footer className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 pb-4 text-sm text-moon">

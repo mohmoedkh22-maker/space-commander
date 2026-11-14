@@ -57,8 +57,6 @@ export function LunarHorizon() {
           <stop offset="100%" stopColor="#0b1026" />
         </linearGradient>
       </defs>
-      <circle cx="1180" cy="170" r="70" fill="url(#lh-earth)" />
-      <path d="M1145 145 q22 -16 44 4 q-12 20 -34 12z M1200 205 q16 -8 26 8 q-12 12 -26 -8z" fill="#43d9a3" opacity="0.65" />
       <circle cx="180" cy="640" r="260" fill="url(#lh-sun)" className="anim-glow" />
       {/* far ridges — long polar shadows */}
       <path d="M0 640 L140 600 L260 625 L420 570 L560 610 L720 585 L900 620 L1060 575 L1240 610 L1440 590 L1440 900 L0 900Z" fill="url(#lh-far)" />
@@ -67,19 +65,6 @@ export function LunarHorizon() {
       <path d="M0 720 Q360 670 720 700 T1440 690 L1440 900 L0 900Z" fill="url(#lh-near)" />
       <ellipse cx="300" cy="800" rx="140" ry="22" fill="#0b1026" opacity="0.55" />
       <ellipse cx="1150" cy="830" rx="170" ry="26" fill="#0b1026" opacity="0.55" />
-      {/* SELENE-1 silhouette on the ridge */}
-      <g transform="translate(1150 612) scale(1.25)">
-        <rect x="-110" y="-6" width="70" height="8" fill="#1f3a7a" transform="skewX(-20)" />
-        <rect x="-30" y="-36" width="70" height="40" rx="6" fill="#d9dfeb" />
-        <rect x="45" y="-24" width="46" height="28" rx="6" fill="#c3cbdb" />
-        <path d="M100 4 a32 26 0 0 1 64 0z" fill="#43d9a3" opacity="0.45" />
-        {[-20, -6, 8, 22].map((x) => (
-          <rect key={x} x={x} y="-26" width="8" height="6" rx="1.5" fill="#50e3f0" className="anim-glow" />
-        ))}
-        <rect x="54" y="-16" width="6" height="5" rx="1" fill="#ffad4d" />
-        <line x1="5" y1="-36" x2="5" y2="-58" stroke="#aab6ca" strokeWidth="2" />
-        <circle cx="5" cy="-60" r="3" fill="#ff6b6b" className="anim-glow" />
-      </g>
       {/* soft vignette for text contrast */}
       <rect width="1440" height="900" fill="#0b1026" opacity="0.25" />
     </svg>

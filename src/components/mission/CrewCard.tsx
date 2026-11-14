@@ -2,6 +2,7 @@
 import type { CrewId } from "@/lib/game/types";
 import { CREW } from "@/lib/i18n";
 import { FACILITIES, FACILITY_ORDER } from "@/lib/mission";
+import { Portrait } from "../Portrait";
 import { useSettings } from "../settings";
 
 /** Crew member card. Avatar is a labelled placeholder (initial in their identity colour). */
@@ -15,9 +16,7 @@ export function CrewCard({ id, compact = false }: { id: CrewId; compact?: boolea
       style={{ borderColor: c.color + "99", boxShadow: `0 0 24px ${c.color}22` }}
     >
       <div className="flex items-center gap-3">
-        <div className="grid size-14 shrink-0 place-items-center rounded-full font-display text-2xl font-bold text-space" style={{ background: c.color }} aria-hidden>
-          {c.initial}
-        </div>
+        <Portrait id={id} size={compact ? 56 : 88} />
         <div>
           <h3 className="font-display text-xl font-bold">{tx(c.name)}</h3>
           <p className="text-sm" style={{ color: c.color }}>

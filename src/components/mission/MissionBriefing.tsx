@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- static export, small local art */
 "use client";
 import { useMemo, useState } from "react";
 import { createInitialState } from "@/lib/game/engine";
@@ -73,9 +74,15 @@ export function MissionBriefing({ onDone }: { onDone: () => void }) {
       <StepFrame step={0} onNext={next}>
         <Kicker>OPERATION MOONLIGHT</Kicker>
         <h1 className="font-display text-4xl font-bold sm:text-5xl">{tx(t("مرحبًا بك في SELENE-1", "Welcome to SELENE-1"))}</h1>
-        <Panel className="!p-2">
-          <LunarBase status={{ energy: "ok", life: "ok", greenhouse: "ok", water: "ok", shelter: "dim", command: "ok" }} />
-        </Panel>
+        <div className="overflow-hidden rounded-[24px] border-2 border-holo/50 shadow-[0_0_48px_#4fe5ff33]">
+          <img
+            src="/art/base.png"
+            width={224}
+            height={140}
+            className="block aspect-[16/7] h-auto w-full object-cover"
+            alt={tx(t("قاعدة SELENE-1 على سطح القمر، والأرض في السماء", "The SELENE-1 base on the Moon's surface, with Earth in the sky"))}
+          />
+        </div>
         <SuhailDialogue
           mood="happy"
           text={t(
@@ -131,7 +138,6 @@ export function MissionBriefing({ onDone }: { onDone: () => void }) {
             "Adam, the Energy Engineer! Each crew member is an expert in a different system — listen to their reports before you decide.",
           )}
         />
-        <p className="text-xs text-moon">{tx(t("صور الطاقم مؤقتة — الرسومات النهائية من فريق التصميم.", "Crew pictures are temporary — final art by the design team."))}</p>
       </StepFrame>
     );
 
