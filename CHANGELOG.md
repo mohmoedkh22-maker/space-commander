@@ -2,6 +2,17 @@
 
 **Live:** https://space-commander-theta.vercel.app
 
+## V5 — 2026-11-15 · What If Lab (tag `V5`)
+
+### Added
+- SUHAIL asks for a prediction before any result is shown: the child picks a target (battery, water, oxygen, food or outcome),
+  a direction, and can add their own words
+- Replay from the exact frozen state saved before the chosen decision. Earlier decisions stay unchanged
+- Documented policy for later choices that become locked: "keep, else one step more careful" (`CAUTION_LADDER`)
+- Side-by-side comparison: four resource cards, facility conditions, mission outcome. Cyan ● = original, purple ■ = alternative
+- A branching timeline that marks where the paths split, plus "What changed? / What happened afterward? / Why?" explanations
+- Clear messages for invalid branches. 82 automated tests (15 new for the lab)
+
 ## V4 — 2026-11-14 · NASA Science Integration (tag `V4`)
 
 ### Added

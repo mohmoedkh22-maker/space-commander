@@ -1,5 +1,43 @@
 # progress.md
 
+## 2026-11-15 · V0.6 (prompt label): What If Lab
+Comes after the V4 release. The game version number has not been changed.
+
+**Flow:** pick a decision from your mission → see your original choice (cyan ●) and the other options (purple ■, locked ones
+show why) → SUHAIL asks for a prediction **before** anything is revealed → replay → compare and explain.
+
+**Done**
+- `lib/game/whatif.ts` (pure, deterministic)
+  - `decisionHistory()` returns every decision with its exact before/after engine state, **deep-frozen**
+  - `tryRunWhatIf()` replays from the frozen state saved before the chosen decision using the existing engine (`simulateFrom`).
+    Earlier decisions and days are reused unchanged
+  - It never throws. Clear AR/EN errors cover: unknown decision or option, unfinished mission, decision not taken, same option as the original,
+    and an option that was locked at that moment
+- **Documented policy for later decisions that become invalid:** "keep, else one step more careful". A later choice is kept if it is still
+  allowed. Otherwise the lab moves down a per-decision `CAUTION_LADDER` (e.g. boost → repair → cut-farm) to the first allowed option.
+  The engine's `simulateFrom` now accepts this as an `OptionResolver` (the default behaviour is unchanged)
+- Comparison data: final energy, water, oxygen and food with differences, the five facility conditions (changed ones flagged), the outcome,
+  the divergence day, and each later decision marked kept or replaced (with the lock reason)
+- Explanations generated from the day logs, in AR/EN:
+  - **What changed?**
+  - **What happened afterward?** Later choices, days where loads were switched off in only one timeline, and the outcome change
+  - **Why?** Same NASA sunlight in both, so the energy difference comes from use (kWh); water from recycler recovery and greenhouse use;
+    food from crop growth; oxygen from shortfall days; and the outcome reason
+- Prediction: choose what to predict (battery, water, oxygen, food or mission outcome) and a direction (higher / same / lower,
+  or better / same / worse), plus optional words in the child's own language. The result is checked against that exact target
+- UI (`screens/WhatIfLab.tsx`):
+  - Cyan = original, purple = alternative, also told apart by ● / ■ symbols and solid / dashed lines (not colour alone)
+  - A branching timeline marks "the paths split here" and shows later choices changed by locks
+  - Four resource cards, each with bars, a difference and a sparkline with the split day marked
+  - Facility rows, outcome badges, and three explanation cards
+- Checked in the browser (full flow, AR) at desktop and 375 px: no horizontal scroll, all buttons ≥ 40 px tall
+- Tests: **82 passing** (15 new in `whatif.test.ts`): the original history is unchanged and frozen, alternatives are reproducible across every
+  path and option, recalculated consequences match the final states, the policy is followed, and invalid branches are handled
+
+**Not done / limits**
+- The lab compares one changed decision at a time (no chains of several changes)
+- Experiments are not saved after the report (only the latest result is shown in the Commander Report)
+
 ## 2026-11-14 · V0.5 (prompt label): NASA Science Integration
 Comes after the V3 release (cinematic gameplay). The game version number has not been changed yet.
 

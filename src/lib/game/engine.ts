@@ -298,12 +298,25 @@ export interface SimulationResult {
   snapshots: GameState[];
 }
 
+/** Picks the option actually applied when the requested one may be locked in this state. */
+export type OptionResolver = (s: GameState, decisionId: DecisionId, requested: string) => string;
+
+/** Default: keep the requested option when allowed, otherwise the first available one (declared order). */
+export const firstAvailable: OptionResolver = (s, id, requested) =>
+  lockReason(s, id, requested) === null ? requested : availableOptions(s, id)[0].id;
+
 /**
  * Continues the mission from `start` (the state BEFORE step index `from`) with the given choices,
- * up to (not including) step `until`. If a requested option is locked in this timeline, the first
- * available option is used and the record is marked as a fallback (What If Lab).
+ * up to (not including) step `until`. If a requested option is locked in this timeline, `resolve`
+ * picks the replacement and the record is marked as a fallback (What If Lab).
  */
-export function simulateFrom(start: GameState, from: number, choices: Choices, until: number = STEPS.length): SimulationResult {
+export function simulateFrom(
+  start: GameState,
+  from: number,
+  choices: Choices,
+  until: number = STEPS.length,
+  resolve: OptionResolver = firstAvailable,
+): SimulationResult {
   let s = start;
   const records: DecisionRecord[] = [];
   const snapshots: GameState[] = [];
@@ -317,8 +330,8 @@ export function simulateFrom(start: GameState, from: number, choices: Choices, u
       const id = step as DecisionId;
       const requested = choices[id];
       if (!requested) break; // waiting for the player
-      const fallback = lockReason(s, id, requested) !== null;
-      const optionId = fallback ? availableOptions(s, id)[0].id : requested;
+      const optionId = resolve(s, id, requested);
+      const fallback = optionId !== requested;
       const before = s;
       s = applyDecision(s, id, optionId);
       records.push({ decisionId: id, optionId, requestedOptionId: requested, fallback, day: before.day, before, after: s });

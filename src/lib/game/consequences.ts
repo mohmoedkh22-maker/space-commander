@@ -8,7 +8,7 @@ import type { Consequence, DayLog, DecisionId, FacilityConditions, GameState, Mi
 const t = (ar: string, en: string): T => ({ ar, en });
 const r = (n: number) => Math.round(n);
 
-const FACILITY_NAMES: Record<keyof FacilityConditions, T> = {
+export const FACILITY_NAMES: Record<keyof FacilityConditions, T> = {
   powerStation: t("محطة الطاقة", "Power Station"),
   waterRecycling: t("وحدة تدوير المياه", "Water Recycling"),
   greenhouse: t("المزرعة", "Greenhouse"),
@@ -16,7 +16,7 @@ const FACILITY_NAMES: Record<keyof FacilityConditions, T> = {
   shelter: t("المأوى", "Shelter"),
 };
 
-const CONDITION_TEXT: Record<string, T> = {
+export const CONDITION_TEXT: Record<string, T> = {
   nominal: t("يعمل طبيعيًا", "working normally"),
   "low-reserve": t("احتياطي البطارية منخفض", "battery reserve is low"),
   boosted: t("يعمل بقوة إضافية", "running boosted"),
@@ -31,7 +31,7 @@ const CONDITION_TEXT: Record<string, T> = {
   active: t("نشط — الطاقم في الداخل", "active — crew inside"),
 };
 
-const SHED_TEXT: Record<string, T> = {
+export const SHED_TEXT: Record<string, T> = {
   research: t("الأبحاث", "research"),
   greenhouse: t("جزء من المزرعة", "part of the greenhouse"),
   recyclerBoost: t("التشغيل الإضافي للمدوّر", "the recycler boost"),
