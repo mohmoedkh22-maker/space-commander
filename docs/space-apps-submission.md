@@ -1,7 +1,8 @@
 # NASA Space Apps 2026 — Project Submission Text (copy into the official project page)
 
 **Project name:** SPACE COMMANDER — Operation Moonlight
-**Team:** SUHAIL (فريق سهيل)
+**Team:** SUHAIL (فريق سهيل): Reem Abdulrahman Alkishan, Renad Ismael Mohammed Noor, Manar Smeer Aboyusuf,
+Mahmmoud Mohamed Khadim, Mohammed Mahmmoud Zeino, Majdah Mohammed Shaiba
 **Challenge:** Build a Junior Astronaut Mission Trainer
 **Live project:** https://space-commander-theta.vercel.app
 **Repository:** https://github.com/mohmoedkh22-maker/space-commander
