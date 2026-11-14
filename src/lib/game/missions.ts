@@ -1,6 +1,7 @@
 // Data-driven mission chapters and story events (pure data + pure functions).
 import { WATER } from "./config";
-import type { EventId, GameEvent, Mission, MissionId, T } from "./types";
+import { completeAllSafetyChecks } from "./safety";
+import type { EventId, GameEvent, GameState, Mission, MissionId, T } from "./types";
 
 const t = (ar: string, en: string): T => ({ ar, en });
 
@@ -34,6 +35,17 @@ export function missionForDay(day: number): MissionId {
   return day <= 2 ? 1 : day <= 4 ? 2 : 3;
 }
 
+/**
+ * A mission's decision becomes available only after the previous chapter's decision
+ * was taken and the chapter's opening event happened.
+ */
+export function isMissionAvailable(s: GameState, id: MissionId): boolean {
+  const done = (d: string) => s.decisionHistory.some((h) => h.decisionId === d);
+  if (id === 1) return true;
+  if (id === 2) return done("d1-energy") && s.flags.recyclerFault;
+  return done("d2-water") && s.flags.storm;
+}
+
 export const EVENTS: Record<EventId, GameEvent> = {
   "evt-fault": {
     id: "evt-fault",
@@ -42,7 +54,7 @@ export const EVENTS: Record<EventId, GameEvent> = {
     apply: (s) => ({
       ...s,
       recyclerEfficiency: WATER.faultEfficiency,
-      facilities: { ...s.facilities, water: "faulty" },
+      facilities: { ...s.facilities, waterRecycling: "faulty" },
       flags: { ...s.flags, recyclerFault: true },
     }),
   },
@@ -50,17 +62,12 @@ export const EVENTS: Record<EventId, GameEvent> = {
     id: "evt-storm",
     day: 5,
     title: t("تحذير طقس فضائي (سيناريو تدريبي)", "Space-weather warning (training scenario)"),
-    apply: (s) => ({
-      ...s,
-      facilities: { ...s.facilities, shelter: "active" },
-      crewSafety: "sheltered",
-      flags: { ...s.flags, storm: true },
-    }),
+    apply: (s) => ({ ...s, flags: { ...s.flags, storm: true } }),
   },
   safety: {
     id: "safety",
     day: 5,
-    title: t("تأكيد إجراءات السلامة", "Safety steps confirmed"),
-    apply: (s) => ({ ...s, flags: { ...s.flags, safetyConfirmed: true } }),
+    title: t("إجراءات السلامة الأربع", "The four safety steps"),
+    apply: (s) => completeAllSafetyChecks(s),
   },
 };

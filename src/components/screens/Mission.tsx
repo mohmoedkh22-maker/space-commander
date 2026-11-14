@@ -6,6 +6,8 @@ import { ILLUMINATION } from "@/lib/nasa/illumination";
 import { SCENARIO_LIGHT_FACTOR } from "@/lib/game/config";
 import { UI, t } from "@/lib/i18n";
 import { explainDay, guidanceFor } from "@/lib/game/consequences";
+import { suhailLines } from "@/lib/game/dialogue";
+import { SAFETY_CHECKS, allSafetyChecksDone, completeSafetyCheck } from "@/lib/game/safety";
 import { WhyPanel } from "../mission/WhyPanel";
 import { LunarBase, facilityStatus } from "../LunarBase";
 import { useSettings } from "../settings";
@@ -108,10 +110,10 @@ export function DayResultCard({ log }: { log: DayLog }) {
 function DeltaTable({ before, after }: { before: GameState; after: GameState }) {
   const { tx } = useSettings();
   const rows: [string, number, string][] = [
-    [tx(UI.energy), after.batteryKWh - before.batteryKWh, " kWh"],
-    [tx(UI.water), after.waterL - before.waterL, " L"],
-    [tx(UI.oxygen), after.oxygenPct - before.oxygenPct, "%"],
-    [tx(UI.food), after.cropPct - before.cropPct, "%"],
+    [tx(UI.energy), after.resources.energy - before.resources.energy, " kWh"],
+    [tx(UI.water), after.resources.water - before.resources.water, " L"],
+    [tx(UI.oxygen), after.resources.oxygen - before.resources.oxygen, "%"],
+    [tx(UI.food), after.resources.food - before.resources.food, "%"],
   ];
   return (
     <Panel>
@@ -184,7 +186,7 @@ export function FaultEvent({ state, onNext }: { state: GameState; onNext: () => 
         <div className="flex flex-col gap-3">
           <CrewSays who="mira" text={t("سهيل، كمية المياه التي نستعيدها أقل من المعتاد!", "SUHAIL, we're recovering less water than usual!")} />
           <CrewSays who="layan" text={t("علينا التأكد من توفير احتياجات الطاقم الأساسية.", "We must make sure the crew's basic needs are covered.")} />
-          {state.cropPct < 45 && (
+          {state.resources.food < 45 && (
             <CrewSays who="mira" text={t("المزرعة لم تصل بعد إلى مستوى النمو المخطط.", "The greenhouse hasn't reached its planned growth yet.")} />
           )}
           <SuhailSays mood="warning" text={guidanceFor("evt-fault", state)} />
@@ -231,37 +233,49 @@ export function StormEvent({ state, onNext }: { state: GameState; onNext: () => 
   );
 }
 
-export function SafetyScreen({ onNext }: { onNext: () => void }) {
+export function SafetyScreen({ state, onNext }: { state: GameState; onNext: () => void }) {
   const { tx, beep } = useSettings();
-  const [done, setDone] = useState<boolean[]>(UI.safetyItems.map(() => false));
+  // The checks run through the engine (completeSafetyCheck); Mission 03 options stay locked until all four are done.
+  const [s, setS] = useState(state);
   const [warn, setWarn] = useState(false);
-  const all = done.every(Boolean);
+  const all = allSafetyChecksDone(s);
+  const warning = suhailLines(state, "mission-3-alert", 1)[0];
   return (
     <main className="mx-auto max-w-3xl px-4 py-6">
       <ScreenTitle kicker={`${tx(UI.day)} 5`} title={tx(UI.safetyTitle)} />
-      <Panel>
+      {warning && <SuhailSays mood="warning" text={warning.text} />}
+      <Panel className="mt-4">
         <ul className="flex flex-col gap-3">
-          {UI.safetyItems.map((it, i) => (
-            <li key={i}>
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-holo/20 p-4 has-[:checked]:border-mint has-[:checked]:bg-mint/10">
-                <input
-                  type="checkbox"
-                  className="size-6 accent-[#43d9a3]"
-                  checked={done[i]}
-                  onChange={() => {
-                    beep("soft");
-                    setDone((d) => d.map((v, j) => (j === i ? !v : v)));
-                  }}
-                />
-                <span className="text-lg">{tx(it)}</span>
-                {done[i] && <span className="ms-auto text-mint">✓</span>}
-              </label>
-            </li>
-          ))}
+          {SAFETY_CHECKS.map((c) => {
+            const done = s.safetyChecks[c.id];
+            return (
+              <li key={c.id}>
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-holo/20 p-4 has-[:checked]:border-mint has-[:checked]:bg-mint/10">
+                  <input
+                    type="checkbox"
+                    className="size-6 accent-[#43d9a3]"
+                    checked={done}
+                    disabled={done}
+                    onChange={() => {
+                      beep("soft");
+                      setS((prev) => completeSafetyCheck(prev, c.id));
+                    }}
+                  />
+                  <span className="text-lg">{tx(c.label)}</span>
+                  {done && <span className="ms-auto text-mint">✓</span>}
+                </label>
+              </li>
+            );
+          })}
         </ul>
       </Panel>
       <div className="mt-4 flex flex-col gap-3">
         {warn && !all && <SuhailSays mood="warning" text={UI.safetyWarn} />}
+        {all && (
+          <p className="rounded-xl border border-mint/50 bg-mint/10 px-4 py-3 text-center">
+            🛡️ {tx(t("الطاقم في المأوى والأنظمة الحيوية مؤكدة. يمكنك الآن اختيار خطة التشغيل.", "The crew is in the shelter and vital systems are confirmed. You can now choose the operating plan."))}
+          </p>
+        )}
         <Button
           onClick={() => {
             if (!all) {

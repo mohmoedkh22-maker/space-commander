@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { DECISIONS } from "@/lib/game/decisions";
+import { lockReason } from "@/lib/game/engine";
+import { suhailLines } from "@/lib/game/dialogue";
 import type { DecisionId, DecisionRecord, GameState, T } from "@/lib/game/types";
 import { CREW, UI, t } from "@/lib/i18n";
 import { RESOURCE_ORDER, resourceValue } from "@/lib/mission";
@@ -118,7 +120,7 @@ export function DecisionScreen({
           <h2 className="sr-only">{tx(UI.options)}</h2>
           <div className="grid gap-4 sm:grid-cols-2" role="radiogroup" aria-label={tx(UI.options)}>
             {d.options.map((o, i) => {
-              const lock = o.locked?.(state) ?? null;
+              const lock = lockReason(state, d.id, o.id);
               const selected = choice === o.id;
               return (
                 <label
@@ -146,6 +148,7 @@ export function DecisionScreen({
                   <div className="flex flex-1 flex-col gap-1.5 px-1 text-center">
                     <span className="font-display text-sm font-bold text-holo">{String.fromCharCode(65 + i)}</span>
                     <b className="text-xl leading-snug">{tx(o.label)}</b>
+                    <span className="text-sm text-moon">{tx(o.description)}</span>
                     <span className="text-sm text-lunar/90">
                       <span className="text-mint">✔ </span>
                       {tx(o.benefit)}
@@ -226,6 +229,27 @@ export function ConsequenceScreen({ record, after, onNext }: { record: DecisionR
           </div>
 
           <CrewSays who={o.crew.who} text={o.crew.text} />
+
+          {/* stored consequences of this choice (they follow the player into the next missions) */}
+          <div className="rounded-2xl border border-solar/40 bg-solar/5 p-4">
+            <h2 className="mb-2 font-display text-lg font-bold text-solar">📌 {tx(t("ما الذي سيتغير بعد قرارك", "What your decision changes"))}</h2>
+            <ul className="flex flex-col gap-1.5">
+              {o.consequences.map((c, i) => (
+                <li key={i}>• {tx(c)}</li>
+              ))}
+            </ul>
+            <p className="mt-3 text-sm leading-relaxed text-lunar/85">
+              🔬 <b>{tx(t("العلم وراء القرار:", "The science:"))}</b> {tx(o.explanation)}
+            </p>
+          </div>
+
+          {/* SUHAIL reacts to the new state (data-driven rules) */}
+          {suhailLines(after, "after-decision", 1).map((l) => (
+            <p key={l.id} className="rounded-xl border border-holo/40 bg-holo/5 px-4 py-3 leading-relaxed">
+              <b className="text-holo">{tx(t("سهيل:", "SUHAIL:"))}</b> {tx(l.text)}
+            </p>
+          ))}
+
           {log && <WhyPanel open items={explainDay(log, record.before, after)} />}
 
           {log && (

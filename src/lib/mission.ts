@@ -68,13 +68,13 @@ export const RESOURCE_ORDER: ResourceId[] = ["energy", "water", "oxygen", "food"
 export function resourceValue(s: GameState, id: ResourceId) {
   switch (id) {
     case "energy":
-      return { value: s.batteryKWh, pct: (s.batteryKWh / BATTERY_CAP_KWH) * 100 };
+      return { value: s.resources.energy, pct: (s.resources.energy / BATTERY_CAP_KWH) * 100 };
     case "water":
-      return { value: s.waterL, pct: (s.waterL / WATER_CAP_L) * 100 };
+      return { value: s.resources.water, pct: (s.resources.water / WATER_CAP_L) * 100 };
     case "oxygen":
-      return { value: s.oxygenPct, pct: s.oxygenPct };
+      return { value: s.resources.oxygen, pct: s.resources.oxygen };
     case "food":
-      return { value: s.cropPct, pct: s.cropPct };
+      return { value: s.resources.food, pct: s.resources.food };
   }
 }
 

@@ -90,10 +90,10 @@ export function ReportScreen({
           </p>
           <p className="mt-1 text-mint">✓ {tx(UI.crewSafe)}</p>
           <ul className="mt-3 grid grid-cols-2 gap-2 text-sm" dir="auto">
-            <li>⚡ {tx(UI.energy)}: <b dir="ltr">{Math.round(state.batteryKWh)} kWh</b></li>
-            <li>💧 {tx(UI.water)}: <b dir="ltr">{Math.round(state.waterL)} L</b></li>
-            <li>🫧 {tx(UI.oxygen)}: <b dir="ltr">{Math.round(state.oxygenPct)}%</b></li>
-            <li>🌱 {tx(UI.food)}: <b dir="ltr">{Math.round(state.cropPct)}%</b></li>
+            <li>⚡ {tx(UI.energy)}: <b dir="ltr">{Math.round(state.resources.energy)} kWh</b></li>
+            <li>💧 {tx(UI.water)}: <b dir="ltr">{Math.round(state.resources.water)} L</b></li>
+            <li>🫧 {tx(UI.oxygen)}: <b dir="ltr">{Math.round(state.resources.oxygen)}%</b></li>
+            <li>🌱 {tx(UI.food)}: <b dir="ltr">{Math.round(state.resources.food)}%</b></li>
           </ul>
         </Panel>
         <Panel>

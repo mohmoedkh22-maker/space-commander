@@ -1,7 +1,24 @@
 # progress.md
 
-## 2026-11-14 · V0.4: Decision & simulation engine
+## 2026-11-14 · V0.4 (revised spec): Decision & simulation engine
 **Done**
+- GameState restructured to the spec: `resources{energy,water,oxygen,food}`, `facilities{powerStation,waterRecycling,greenhouse,lifeSupport,shelter}`,
+  `crewSafety`, `safetyChecks`, `decisionHistory`, `activeMissionId`, `missionResults`, `missionStatus`
+  (IN_PROGRESS → MISSION_ACCOMPLISHED / SAFE_BUT_LIMITED / MISSION_INTERRUPTED)
+- Resource limits in `RESOURCE_LIMITS`; NaN and Infinity are rejected (`sanitizeResources`, `applyResourceEffects`)
+- Decision options are now pure data: id, title, description, prerequisites, policy, resource effects, facility effects,
+  consequences and explanation. The engine interprets them (`lockReason`, `applyDecision`, `tryApplyDecision`)
+- Mission 01 has exactly 3 options (Prioritize greenhouse / Conserve energy / Balance loads); Mission 02 has 3 (Increase recycling,
+  which needs ≥ 150 kWh / Reduce greenhouse water / Inspect & repair); Mission 03 has 3, each requiring the 4 safety checks
+- `safety.ts`: the 4 safety steps run through the engine and cannot be bypassed; `isMissionAvailable` gates each chapter
+- `dialogue.ts`: SUHAIL's data-driven rules (LOW_ENERGY, LOW_WATER, LOW_GREENHOUSE, GOOD_ENERGY, SAFETY_WARNING, OPTIONS_LIMITED)
+- `whatif.ts`: `replayFromState` replays from the exact saved state; the original timeline is never mutated
+- UI: the engine validates every confirm; options show their description; the result screen lists the stored consequences,
+  the science behind them and SUHAIL's reaction; the safety screen uses the engine's checks
+- Tests: 40 passing (the 12 required cases plus the NASA, energy-model and shape tests)
+- Removed: "inspect the power station" (Mission 01) and "rationing" (Mission 02), to match the 3-option spec
+
+### Earlier V0.4 pass
 - `GameState` now holds day, energy, water, oxygen, food, **facility conditions**, **crew safety**, **decision history**,
   **active mission** and **mission outcome** (`src/lib/game/types.ts`)
 - Named types: `Mission`, `Decision`, `DecisionOption`, `ResourceEffect`, `Consequence`, `GameEvent`, `MissionResult`

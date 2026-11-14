@@ -7,12 +7,15 @@
 ## Architecture
 | Module | Role |
 |---|---|
-| `src/lib/game/types.ts` | Typed model: `GameState`, `Mission`, `Decision`, `DecisionOption`, `ResourceEffect`, `Consequence`, `GameEvent`, `MissionResult` |
+| `src/lib/game/types.ts` | Typed model: `GameState` (resources, facilities, crewSafety, safetyChecks, decisionHistory, activeMissionId, missionResults, missionStatus), `Mission`, `Decision`, `DecisionOption` (declarative: prerequisites, policy, resource and facility effects, consequences, explanation), `ResourceEffect`, `Consequence`, `GameEvent`, `MissionResult` |
 | `src/lib/game/config.ts` | All tunable numbers (this document) |
 | `src/lib/game/missions.ts` | Data: the 3 mission chapters and the story events |
 | `src/lib/game/decisions.ts` | Data: decisions, options, lock rules, SUHAIL and crew lines (AR/EN) |
 | `src/lib/game/engine.ts` | Pure, immutable state transitions: `runDay`, `applyEvent`, `applyDecision`, `simulate`, `computeEnding` |
+| `src/lib/game/safety.ts` | The four Mission 03 safety steps (`completeSafetyCheck`); every Mission 03 option requires them |
+| `src/lib/game/dialogue.ts` | SUHAIL's data-driven dialogue rules (`DIALOGUE_RULES`, `suhailLines`) evaluated on the real state |
 | `src/lib/game/consequences.ts` | Explanations: `explainDay`, `explainFacilities`, `guidanceFor`, `missionResult` |
+| `src/lib/game/whatif.ts` | `replayFromState` (replay from an exact saved state), `runWhatIf` |
 | `src/lib/game/persistence.ts` | Optional on-device progress (`serializeProgress` and `parseProgress`, validated) |
 
 No React and no randomness in these modules: the same choices always produce the same results.
@@ -21,15 +24,17 @@ No React and no randomness in these modules: the same choices always produce the
 | Constant | Value | Meaning |
 |---|---|---|
 | `BATTERY_CAP_KWH` | 300 | battery capacity (kWh) |
-| `START.batteryKWh` | 240 | starting battery |
-| `WATER_CAP_L` / `START.waterL` | 600 / 400 | water tank and starting water (L) |
-| `START.oxygenPct` | 98 | starting oxygen index (%) |
-| `START.cropPct` | 20 | starting crop growth (%) |
+| `START.resources.energy` | 240 | starting battery (kWh) |
+| `WATER_CAP_L` / `START.resources.water` | 600 / 400 | water tank and starting water (L) |
+| `START.resources.oxygen` | 98 | starting oxygen index (%) |
+| `START.resources.food` | 20 | starting crop growth / food supply (%) |
 | `SOLAR_RATED_KW` | 10 | solar array size |
-| `START.performanceFactor` | 0.85 (0.95 after inspection) | dust, temperature and wiring losses |
+| `START.performanceFactor` | 0.85 | dust, temperature and wiring losses |
+| `RESOURCE_LIMITS` | energy 0–300, water 0–600, oxygen 0–100, food 0–100 | hard limits; NaN and Infinity are rejected |
+| `THRESHOLDS` | boost ≥ 150 kWh, repair ≥ 100 kWh, continue goals ≥ 150 kWh and ≥ 300 L, low reserve < 150 kWh | prerequisites, facility conditions, dialogue |
 
 ## Daily loads (kWh)
-Life support 70 (**never shed**) · recycler 25 (+20 boost) · greenhouse 55 / 25 / 10 (full / reduced / minimal) · research 30 · shelter 15 on storm days · inspection 10 · repair 35.
+Life support 70 (**never shed**) · recycler 25 (+20 boost) · greenhouse 55 / 25 / 10 (full / moderate / minimum) · research 30 · shelter 15 on storm days · repair 35.
 When the battery would go negative, the engine sheds in this order: research → greenhouse → recycler boost. A remaining shortfall strains life support (oxygen −6), and the crew is still protected.
 
 ## Water (L/day, crew of 4)
@@ -45,9 +50,14 @@ Day factors applied to NASA's 88.44 % average: 1.0 · 0.4 · 0.55 · 0.75 · 0.7
 The crew is safe in every ending.
 
 ## The connected decision chain (tested in `v04.test.ts`)
-Choosing **"keep the greenhouse at full power"** on Day 2:
-1. lowers the battery for the following days (future resources),
-2. keeps the greenhouse "thriving" while the battery drains (facility condition),
-3. locks **"run the recycler harder"** on Day 3 and **"continue most mission goals"** on Day 5 (later options),
-4. changes SUHAIL's guidance at the water alert and the emergency,
-5. with the same later choices, ends in **Safe but Limited** instead of **Mission Accomplished** (final outcome).
+Mission 01 options: **Prioritize the greenhouse** · **Conserve energy** · **Balance energy loads**.
+Choosing **Prioritize the greenhouse**:
+1. lowers the battery (132 kWh after Day 2, compared with 207 kWh when conserving), so the Power Station reports a low reserve,
+2. keeps the greenhouse "thriving",
+3. locks **Increase water recycling** in Mission 02 (prerequisite: energy ≥ 150 kWh) and **Continue most mission goals** in Mission 03,
+4. changes SUHAIL's lines (the "options limited" rule fires; the "crop delay" rule does not),
+5. with the same later choices (reduce greenhouse water → continue goals), ends in **SAFE_BUT_LIMITED**; conserving energy ends in **MISSION_ACCOMPLISHED**.
+
+## Outcomes are computed, never chosen
+`computeEnding` reads only the final state: research still running, research days, food, energy, water and shortfall days.
+No randomness, and no outcome is tied directly to an option's name.

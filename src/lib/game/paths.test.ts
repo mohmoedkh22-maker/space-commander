@@ -1,6 +1,6 @@
 // Balance report: prints every path's outcome (run with `npx vitest run paths`).
 import { it } from "vitest";
-import { allPaths, computeEnding, simulate } from "./engine";
+import { allPaths, simulate } from "./engine";
 
 it("prints path table", () => {
   const rows = allPaths().map((c) => {
@@ -9,13 +9,13 @@ it("prints path table", () => {
     return {
       path: Object.values(c).join(" > "),
       eff: r.records.map((x) => (x.fallback ? `*${x.optionId}` : x.optionId)).join(" > "),
-      bat: Math.round(s.batteryKWh),
-      water: Math.round(s.waterL),
-      o2: s.oxygenPct,
-      crop: s.cropPct,
+      energy: Math.round(s.resources.energy),
+      water: Math.round(s.resources.water),
+      o2: s.resources.oxygen,
+      food: s.resources.food,
       res: s.researchPoints,
       short: s.shortfallDays,
-      end: computeEnding(s),
+      status: s.missionStatus,
     };
   });
   console.table(rows);

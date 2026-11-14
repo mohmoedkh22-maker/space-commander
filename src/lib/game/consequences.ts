@@ -1,24 +1,26 @@
 // "Why did this happen?" — pure functions that turn state changes into child-friendly explanations.
 import { ILLUMINATION } from "@/lib/nasa/illumination";
 import { ENDING_RULES, LOADS } from "./config";
-import { DECISIONS } from "./decisions";
-import { computeEnding, isOptionLocked } from "./engine";
+import { OUTCOME_OF, computeEnding } from "./engine";
+import { suhailForDecision, suhailLines } from "./dialogue";
 import type { Consequence, DayLog, DecisionId, FacilityConditions, GameState, MissionResult, T } from "./types";
 
 const t = (ar: string, en: string): T => ({ ar, en });
 const r = (n: number) => Math.round(n);
 
 const FACILITY_NAMES: Record<keyof FacilityConditions, T> = {
-  energy: t("محطة الطاقة", "Energy Station"),
-  water: t("وحدة تدوير المياه", "Water Recycling"),
+  powerStation: t("محطة الطاقة", "Power Station"),
+  waterRecycling: t("وحدة تدوير المياه", "Water Recycling"),
   greenhouse: t("المزرعة", "Greenhouse"),
-  life: t("دعم الحياة", "Life Support"),
+  lifeSupport: t("دعم الحياة", "Life Support"),
   shelter: t("المأوى", "Shelter"),
 };
 
 const CONDITION_TEXT: Record<string, T> = {
   nominal: t("يعمل طبيعيًا", "working normally"),
-  serviced: t("نظيف ويعمل بكفاءة أعلى", "cleaned and more efficient"),
+  "low-reserve": t("احتياطي البطارية منخفض", "battery reserve is low"),
+  boosted: t("يعمل بقوة إضافية", "running boosted"),
+  ready: t("جاهز", "ready"),
   faulty: t("فيه عطل", "has a fault"),
   repaired: t("تم إصلاحه", "repaired"),
   thriving: t("مزدهر", "thriving"),
@@ -53,7 +55,7 @@ export function explainDay(log: DayLog, before: GameState, after: GameState): Co
       `القاعدة استهلكت ${r(log.loadKWh)} ك.و.س: دعم الحياة ${L.lifeSupport}، المدوّر ${L.recycler}، المزرعة ${L.greenhouse}${L.research ? `، الأبحاث ${L.research}` : ""}${L.shelter ? `، المأوى ${L.shelter}` : ""}${L.extra ? `، أعمال إضافية ${L.extra}` : ""}.`,
       `The base used ${r(log.loadKWh)} kWh: life support ${L.lifeSupport}, recycler ${L.recycler}, greenhouse ${L.greenhouse}${L.research ? `, research ${L.research}` : ""}${L.shelter ? `, shelter ${L.shelter}` : ""}${L.extra ? `, extra work ${L.extra}` : ""}.`,
     ),
-    effect: { resource: "batteryKWh", delta: after.batteryKWh - before.batteryKWh },
+    effect: { resource: "energy", delta: after.resources.energy - before.resources.energy },
   });
   if (log.shed.length) {
     const names = log.shed.map((x) => SHED_TEXT[x]);
@@ -65,14 +67,14 @@ export function explainDay(log: DayLog, before: GameState, after: GameState): Co
       ),
     });
   }
-  const waterLost = before.waterL - after.waterL;
+  const waterLost = before.resources.water - after.resources.water;
   out.push({
     kind: "water",
     text: t(
       `فقدنا ${r(waterLost)} لتر: الطاقم استخدم ${log.crewWaterUseL} لترًا واستعاد المدوّر ${r(log.recyclerEfficiency * 100)}% منها، والمزرعة استهلكت ${log.greenhouseWaterL} لترًا.`,
       `We lost ${r(waterLost)} L: the crew used ${log.crewWaterUseL} L and the recycler recovered ${r(log.recyclerEfficiency * 100)}% of it; the greenhouse used ${log.greenhouseWaterL} L.`,
     ),
-    effect: { resource: "waterL", delta: after.waterL - before.waterL },
+    effect: { resource: "water", delta: after.resources.water - before.resources.water },
   });
   out.push({
     kind: "food",
@@ -80,7 +82,7 @@ export function explainDay(log: DayLog, before: GameState, after: GameState): Co
       log.cropGrowth > 0
         ? t(`المحاصيل نمت ${log.cropGrowth}% حسب مستوى تشغيل المزرعة.`, `Crops grew ${log.cropGrowth}% based on how much the greenhouse was running.`)
         : t("المحاصيل لم تنمُ لأن الماء كان قليلًا جدًا.", "Crops didn't grow because there was too little water."),
-    effect: { resource: "cropPct", delta: after.cropPct - before.cropPct },
+    effect: { resource: "food", delta: after.resources.food - before.resources.food },
   });
   if (log.shortfallKWh > 0) {
     out.push({
@@ -89,7 +91,7 @@ export function explainDay(log: DayLog, before: GameState, after: GameState): Co
         `نقص ${r(log.shortfallKWh)} ك.و.س جعل دعم الحياة يعمل تحت ضغط فانخفض الأكسجين قليلًا. الطاقم ما زال محميًا.`,
         `A ${r(log.shortfallKWh)} kWh shortfall put life support under strain, so oxygen dipped a little. The crew is still protected.`,
       ),
-      effect: { resource: "oxygenPct", delta: after.oxygenPct - before.oxygenPct },
+      effect: { resource: "oxygen", delta: after.resources.oxygen - before.resources.oxygen },
     });
   }
   return [...out, ...explainFacilities(before, after)];
@@ -109,48 +111,20 @@ export function explainFacilities(before: GameState, after: GameState): Conseque
 }
 
 /**
- * SUHAIL's guidance changes with the base's condition (so earlier decisions change what he says).
- * He explains the situation; he never picks the option.
+ * SUHAIL's guidance comes from the data-driven rules in dialogue.ts, evaluated on the real state,
+ * so earlier decisions change what he says. He explains the situation; he never picks the option.
  */
 export function guidanceFor(at: DecisionId | "evt-fault", s: GameState): T {
   if (at === "evt-fault") {
-    return s.batteryKWh < 150
-      ? t(
-          "مشكلة جديدة أيها القائد. واحتياطي البطارية محدود الآن — لن نستطيع زيادة تشغيل كل المعدات دون مراجعة الأنظمة الأخرى. هنا يظهر أثر قرارنا السابق.",
-          "A new problem, Commander. And our battery reserve is limited now — we can't run every machine harder without checking other systems. Here's where our earlier decision shows up.",
-        )
-      : t(
-          "مشكلة جديدة أيها القائد. لدينا احتياطي كهرباء جيد، وهذا يمنحنا مساحة إضافية — لكنه لا يجعل الموارد غير محدودة.",
-          "A new problem, Commander. We have a good power reserve, which gives us extra room — but it doesn't make resources unlimited.",
-        );
+    const lines = suhailLines(s, "mission-2-alert", 2).map((l) => l.text);
+    if (!lines.length) return t("لدينا مشكلة جديدة في نظام المياه أيها القائد.", "We have a new problem in the water system, Commander.");
+    return { ar: lines.map((l) => l.ar).join(" "), en: lines.map((l) => l.en).join(" ") };
   }
-  if (at === "d2-water") {
-    if (isOptionLocked(s, "d2-water", "boost")) {
-      return t(
-        "تذكّر عندما استخدمنا جزءًا كبيرًا من الطاقة؟ ذلك القرار قيّد خياراتنا الآن. لا يزال بإمكاننا البحث عن خطة أخرى — ما سبب المشكلة برأيك؟",
-        "Remember when we used a lot of power? That choice limits our options now. We can still find another plan — what do you think is causing the problem?",
-      );
-    }
-    return DECISIONS["d2-water"].hint;
-  }
-  if (at === "d3-emergency") {
-    if (isOptionLocked(s, "d3-emergency", "full-ops")) {
-      return t(
-        "احتياطياتنا أقل مما نحتاج لمواصلة كل الأهداف. ما الأنظمة الأساسية التي يجب أن نحميها؟ وما الأنشطة التي نستطيع تأجيلها؟",
-        "Our reserves are lower than we need to keep every goal going. Which essential systems must we protect? Which activities can wait?",
-      );
-    }
-    return t(
-      "استعدادك في الأيام السابقة منحنا مرونة. لا تختر بسرعة: ما الذي يستحق الاستمرار، وما الذي نؤجله؟",
-      "Your preparation in earlier days gave us flexibility. Don't rush: what is worth continuing, and what can wait?",
-    );
-  }
-  return DECISIONS[at].hint;
+  return suhailForDecision(at, s);
 }
-
 /** Final result with plain reasons for the ending. */
 export function missionResult(s: GameState): MissionResult {
-  const ending = s.outcome ?? computeEnding(s);
+  const ending = computeEnding(s);
   const R = ENDING_RULES;
   const reasons: T[] = [];
   if (s.flags.researchEnded) {
@@ -159,7 +133,7 @@ export function missionResult(s: GameState): MissionResult {
   if (s.shortfallDays > R.interrupted.maxShortfallDays) {
     reasons.push(t(`نقصت الكهرباء في ${s.shortfallDays} أيام.`, `Power ran short on ${s.shortfallDays} days.`));
   }
-  if (s.waterL < R.interrupted.minWater) {
+  if (s.resources.water < R.interrupted.minWater) {
     reasons.push(t("انخفض الماء تحت الحد الآمن.", "Water fell below the safe level."));
   }
   if (ending !== "C") {
@@ -178,8 +152,9 @@ export function missionResult(s: GameState): MissionResult {
         ),
       );
     }
-    if (s.cropPct < R.accomplished.minCrop) reasons.push(t(`المحاصيل وصلت ${r(s.cropPct)}% فقط.`, `Crops only reached ${r(s.cropPct)}%.`));
-    if (s.batteryKWh < R.accomplished.minBattery) reasons.push(t(`البطارية انتهت عند ${r(s.batteryKWh)} ك.و.س فقط.`, `The battery ended at only ${r(s.batteryKWh)} kWh.`));
+    if (s.resources.food < R.accomplished.minFood) reasons.push(t(`المحاصيل وصلت ${r(s.resources.food)}% فقط (المطلوب ${R.accomplished.minFood}%).`, `Crops only reached ${r(s.resources.food)}% (${R.accomplished.minFood}% needed).`));
+    if (s.resources.energy < R.accomplished.minEnergy) reasons.push(t(`البطارية انتهت عند ${r(s.resources.energy)} ك.و.س فقط.`, `The battery ended at only ${r(s.resources.energy)} kWh.`));
+    if (s.resources.water < R.accomplished.minWater) reasons.push(t(`الماء انتهى عند ${r(s.resources.water)} لتر.`, `Water ended at ${r(s.resources.water)} L.`));
     if (ending === "A") {
       reasons.push(
         t(
@@ -192,8 +167,9 @@ export function missionResult(s: GameState): MissionResult {
   reasons.push(t(`دعم الحياة يحتاج ${LOADS.lifeSupport} ك.و.س يوميًا ولم يُطفأ أبدًا — الطاقم آمن في كل النهايات.`, `Life support needs ${LOADS.lifeSupport} kWh a day and was never switched off — the crew is safe in every ending.`));
   return {
     ending,
+    outcome: OUTCOME_OF[ending],
     crewSafe: true,
-    final: { batteryKWh: s.batteryKWh, waterL: s.waterL, oxygenPct: s.oxygenPct, cropPct: s.cropPct },
+    final: { ...s.resources },
     reasons,
   };
 }

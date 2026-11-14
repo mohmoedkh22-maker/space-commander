@@ -1,5 +1,5 @@
-﻿// Pure, deterministic simulation. No React, no randomness, no I/O.
-// Every state transition returns a NEW object; inputs are never mutated.
+﻿// SPACE COMMANDER simulation engine — the single source of truth.
+// Pure, deterministic, immutable: no React, no randomness, no I/O; inputs are never mutated.
 import { calculateSolarEnergy } from "@/lib/nasa/energyModel";
 import { ILLUMINATION } from "@/lib/nasa/illumination";
 import {
@@ -7,23 +7,32 @@ import {
   CROP_GROWTH,
   ENDING_RULES,
   LOADS,
+  RESOURCE_LIMITS,
   SCENARIO_LIGHT_FACTOR,
   SOLAR_RATED_KW,
   START,
+  THRESHOLDS,
   WATER,
-  WATER_CAP_L,
 } from "./config";
 import { DECISIONS, DECISION_ORDER } from "./decisions";
-import { EVENTS, missionForDay } from "./missions";
+import { EVENTS, isMissionAvailable, missionForDay } from "./missions";
+import { NO_CHECKS, allSafetyChecksDone } from "./safety";
 import type {
   Choices,
   DayLog,
   DecisionId,
+  DecisionOption,
   DecisionRecord,
   EndingId,
   EventId,
   GameState,
+  MissionOutcome,
+  Prerequisite,
+  ResourceEffect,
+  ResourceId,
+  Resources,
   StepId,
+  T,
 } from "./types";
 
 /** The MVP chain: 7 fictional days, 3 decisions, 3 events. */
@@ -45,31 +54,53 @@ export const STEPS: StepId[] = [
 
 export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+export const OUTCOME_OF: Record<EndingId, MissionOutcome> = {
+  A: "MISSION_ACCOMPLISHED",
+  B: "SAFE_BUT_LIMITED",
+  C: "MISSION_INTERRUPTED",
+};
+
+/* ---------------- Resources: validated, always inside limits ---------------- */
+
+/** Rejects NaN/Infinity and clamps every resource to its configured limits. */
+export function sanitizeResources(r: Resources): Resources {
+  const out = {} as Resources;
+  for (const id of Object.keys(RESOURCE_LIMITS) as ResourceId[]) {
+    const v = r[id];
+    if (typeof v !== "number" || !Number.isFinite(v)) throw new RangeError(`Invalid ${id} value: ${v}`);
+    out[id] = clamp(v, RESOURCE_LIMITS[id].min, RESOURCE_LIMITS[id].max);
+  }
+  return out;
+}
+
+export function applyResourceEffects(r: Resources, effects: ResourceEffect[] = []): Resources {
+  const next = { ...r };
+  for (const e of effects) {
+    if (!Number.isFinite(e.delta)) throw new RangeError(`Invalid effect on ${e.resource}`);
+    next[e.resource] = next[e.resource] + e.delta;
+  }
+  return sanitizeResources(next);
+}
+
+/* ---------------- State ---------------- */
+
 export function createInitialState(): GameState {
   return {
     day: 1,
-    mission: 1,
-    facilities: { energy: "nominal", water: "nominal", greenhouse: "thriving", life: "nominal", shelter: "standby" },
+    activeMissionId: 1,
+    resources: { ...START.resources },
+    facilities: { powerStation: "nominal", waterRecycling: "nominal", greenhouse: "thriving", lifeSupport: "nominal", shelter: "standby" },
     crewSafety: "safe",
-    history: [],
-    outcome: null,
-    batteryKWh: START.batteryKWh,
-    waterL: START.waterL,
-    oxygenPct: START.oxygenPct,
-    cropPct: START.cropPct,
+    safetyChecks: { ...NO_CHECKS },
+    decisionHistory: [],
+    missionResults: [],
+    missionStatus: "IN_PROGRESS",
     researchPoints: 0,
     performanceFactor: START.performanceFactor,
     recyclerEfficiency: START.recyclerEfficiency,
     policy: { greenhouse: "full", research: true, recyclerBoost: false, ration: false },
     today: { extraLoadKWh: 0, researchPaused: false },
-    flags: {
-      panelsInspected: false,
-      recyclerFault: false,
-      recyclerRepairPending: false,
-      storm: false,
-      safetyConfirmed: false,
-      researchEnded: false,
-    },
+    flags: { recyclerFault: false, recyclerRepairPending: false, storm: false, safetyConfirmed: false, researchEnded: false },
     shortfallDays: 0,
     log: [],
   };
@@ -83,11 +114,14 @@ export function solarForDay(day: number, performanceFactor: number) {
   });
 }
 
+/* ---------------- Daily simulation ---------------- */
+
 /** Simulates one full day with the current policy, shedding non-vital loads if power runs out. */
 export function runDay(s: GameState): GameState {
   if (s.day > 7) return s;
   const lightFactor = SCENARIO_LIGHT_FACTOR[s.day] ?? 1;
   const solar = solarForDay(s.day, s.performanceFactor).energyKWh;
+  const battery = s.resources.energy;
   let greenhouse = s.policy.greenhouse;
   let research = s.policy.research && !s.today.researchPaused && !s.flags.researchEnded;
   let boost = s.policy.recyclerBoost;
@@ -104,36 +138,35 @@ export function runDay(s: GameState): GameState {
   const load = () => Object.values(breakdown()).reduce((a, b) => a + b, 0);
 
   // Automatic load shedding: life support is never shed.
-  if (s.batteryKWh + solar - load() < 0 && research) {
+  if (battery + solar - load() < 0 && research) {
     research = false;
     shed.push("research");
   }
-  if (s.batteryKWh + solar - load() < 0 && greenhouse !== "minimal") {
+  if (battery + solar - load() < 0 && greenhouse !== "minimal") {
     greenhouse = "minimal";
     shed.push("greenhouse");
   }
-  if (s.batteryKWh + solar - load() < 0 && boost) {
+  if (battery + solar - load() < 0 && boost) {
     boost = false;
     shed.push("recyclerBoost");
   }
   const loads = breakdown();
   const totalLoad = load();
-  const net = s.batteryKWh + solar - totalLoad;
+  const net = battery + solar - totalLoad;
   const shortfall = net < 0 ? -net : 0;
-  const batteryKWh = clamp(net, 0, BATTERY_CAP_KWH);
 
-  // Water
   const efficiency = clamp(s.recyclerEfficiency + (boost ? WATER.boostEfficiencyGain : 0), 0, 0.95);
   const crewGross = s.policy.ration ? WATER.crewUseRationed : WATER.crewUse;
   const greenhouseWater = WATER.greenhouseNet[greenhouse];
-  const waterL = clamp(s.waterL - crewGross * (1 - efficiency) - greenhouseWater, 0, WATER_CAP_L);
+  const waterAfter = s.resources.water - crewGross * (1 - efficiency) - greenhouseWater;
+  const growth = waterAfter > 50 ? CROP_GROWTH[greenhouse] : 0;
 
-  // Crops need water to grow
-  const growth = waterL > 50 ? CROP_GROWTH[greenhouse] : 0;
-  const cropPct = clamp(s.cropPct + growth, 0, 100);
-
-  // Oxygen stays stable unless life support was underpowered
-  const oxygenPct = clamp(s.oxygenPct + (greenhouse === "full" ? 1 : 0) - (shortfall > 0 ? 6 : 0), 0, 100);
+  const resources = sanitizeResources({
+    energy: net,
+    water: waterAfter,
+    oxygen: s.resources.oxygen + (greenhouse === "full" ? 1 : 0) - (shortfall > 0 ? 6 : 0),
+    food: s.resources.food + growth,
+  });
 
   const log: DayLog = {
     day: s.day,
@@ -147,10 +180,7 @@ export function runDay(s: GameState): GameState {
     crewWaterUseL: crewGross,
     greenhouseWaterL: greenhouseWater,
     cropGrowth: growth,
-    batteryKWh,
-    waterL,
-    oxygenPct,
-    cropPct,
+    ...resources,
   };
 
   const repaired = s.flags.recyclerRepairPending;
@@ -158,71 +188,117 @@ export function runDay(s: GameState): GameState {
   const next: GameState = {
     ...s,
     day: nextDay,
-    mission: missionForDay(Math.min(nextDay, 7)),
-    batteryKWh,
-    waterL,
-    oxygenPct,
-    cropPct,
+    activeMissionId: missionForDay(Math.min(nextDay, 7)),
+    resources,
     researchPoints: s.researchPoints + (research ? 1 : 0),
     recyclerEfficiency: repaired ? WATER.repairedEfficiency : s.recyclerEfficiency,
     facilities: {
       ...s.facilities,
-      water: repaired ? "repaired" : s.facilities.water,
+      powerStation: resources.energy < BATTERY_CAP_KWH * THRESHOLDS.lowReserveFraction ? "low-reserve" : "nominal",
+      waterRecycling: repaired ? "repaired" : s.facilities.waterRecycling,
       greenhouse: greenhouse === "full" ? "thriving" : greenhouse === "reduced" ? "reduced" : "dormant",
-      life: shortfall > 0 ? "strained" : "nominal",
+      lifeSupport: shortfall > 0 ? "strained" : "nominal",
     },
-    crewSafety: shortfall > 0 ? "strained" : s.flags.storm ? "sheltered" : "safe",
+    crewSafety: shortfall > 0 ? "strained" : s.flags.safetyConfirmed ? "sheltered" : "safe",
     flags: { ...s.flags, recyclerRepairPending: false },
     today: { extraLoadKWh: 0, researchPaused: false },
     shortfallDays: s.shortfallDays + (shortfall > 0 ? 1 : 0),
     log: [...s.log, log],
   };
-  return nextDay > 7 ? { ...next, outcome: computeEnding(next) } : next;
+  return nextDay > 7 ? { ...next, missionStatus: OUTCOME_OF[computeEnding(next)] } : next;
 }
 
 export function applyEvent(s: GameState, step: EventId): GameState {
   return EVENTS[step].apply(s);
 }
 
-export function isOptionLocked(s: GameState, decisionId: DecisionId, optionId: string) {
-  const opt = DECISIONS[decisionId].options.find((o) => o.id === optionId);
-  if (!opt) throw new Error(`Unknown option ${decisionId}/${optionId}`);
-  return opt.locked?.(s) ?? null;
-}
+/* ---------------- Decisions ---------------- */
 
-export function availableOptions(s: GameState, decisionId: DecisionId) {
-  return DECISIONS[decisionId].options.filter((o) => !o.locked?.(s));
-}
-
-/** Validates and applies one decision. Throws on unknown or locked options. */
-export function applyDecision(s: GameState, decisionId: DecisionId, optionId: string): GameState {
+function findOption(decisionId: DecisionId, optionId: string): DecisionOption {
   const decision = DECISIONS[decisionId];
   if (!decision) throw new Error(`Unknown decision ${decisionId}`);
   const opt = decision.options.find((o) => o.id === optionId);
   if (!opt) throw new Error(`Unknown option ${decisionId}/${optionId}`);
-  if (opt.locked?.(s)) throw new Error(`Option ${optionId} is locked in this state`);
-  if (s.history.some((h) => h.decisionId === decisionId)) throw new Error(`Decision ${decisionId} was already taken`);
-  const after = opt.apply(s);
-  return { ...after, history: [...s.history, { decisionId, optionId, day: s.day }] };
+  return opt;
 }
+
+function prerequisiteMet(s: GameState, p: Prerequisite): boolean {
+  if (p.kind === "safety-checks") return allSafetyChecksDone(s);
+  return s.resources[p.resource] >= p.min;
+}
+
+/** Returns why an option is locked in this state, or null when it is available. */
+export function lockReason(s: GameState, decisionId: DecisionId, optionId: string): T | null {
+  const opt = findOption(decisionId, optionId);
+  const failed = (opt.prerequisites ?? []).find((p) => !prerequisiteMet(s, p));
+  return failed ? failed.reason : null;
+}
+/** @deprecated alias kept for existing callers */
+export const isOptionLocked = lockReason;
+
+export function availableOptions(s: GameState, decisionId: DecisionId) {
+  return DECISIONS[decisionId].options.filter((o) => !lockReason(s, decisionId, o.id));
+}
+
+/** Validates and applies one decision. Throws on unknown, locked, repeated or not-yet-available decisions. */
+export function applyDecision(s: GameState, decisionId: DecisionId, optionId: string): GameState {
+  const decision = DECISIONS[decisionId];
+  const opt = findOption(decisionId, optionId);
+  if (s.decisionHistory.some((h) => h.decisionId === decisionId)) throw new Error(`Decision ${decisionId} was already taken`);
+  if (!isMissionAvailable(s, decision.mission)) throw new Error(`Mission ${decision.mission} is not available yet`);
+  const lock = lockReason(s, decisionId, optionId);
+  if (lock) throw new Error(`Option ${optionId} is locked in this state: ${lock.en}`);
+
+  return {
+    ...s,
+    policy: { ...s.policy, ...opt.policy },
+    resources: applyResourceEffects(s.resources, opt.resourceEffects),
+    facilities: { ...s.facilities, ...opt.facilityEffects },
+    today: {
+      extraLoadKWh: s.today.extraLoadKWh + (opt.today?.extraLoadKWh ?? 0),
+      researchPaused: s.today.researchPaused || !!opt.today?.researchPaused,
+    },
+    flags: { ...s.flags, ...opt.flags },
+    decisionHistory: [...s.decisionHistory, { decisionId, optionId, day: s.day }],
+    missionResults: [
+      ...s.missionResults,
+      { missionId: decision.mission, decisionId, optionId, day: s.day, consequences: opt.consequences },
+    ],
+  };
+}
+
+/** UI-safe version: never throws; on rejection the ORIGINAL state object is returned unchanged. */
+export function tryApplyDecision(
+  s: GameState,
+  decisionId: DecisionId,
+  optionId: string,
+): { ok: true; state: GameState } | { ok: false; state: GameState; error: string } {
+  try {
+    return { ok: true, state: applyDecision(s, decisionId, optionId) };
+  } catch (e) {
+    return { ok: false, state: s, error: (e as Error).message };
+  }
+}
+
+/* ---------------- Running the chain ---------------- */
 
 export interface SimulationResult {
   state: GameState;
   records: DecisionRecord[];
-  /** state after each completed step (index matches STEPS) */
+  /** state after each completed step, counted from the start step */
   snapshots: GameState[];
 }
 
 /**
- * Re-runs the mission from the start with the given choices up to (not including) step `until`.
- * If a requested option is locked in this timeline, the first available option is used and the
- * record is marked as a fallback (used by the What If Lab).
+ * Continues the mission from `start` (the state BEFORE step index `from`) with the given choices,
+ * up to (not including) step `until`. If a requested option is locked in this timeline, the first
+ * available option is used and the record is marked as a fallback (What If Lab).
  */
-export function simulate(choices: Choices, until: number = STEPS.length): SimulationResult {
-  let s = createInitialState();
+export function simulateFrom(start: GameState, from: number, choices: Choices, until: number = STEPS.length): SimulationResult {
+  let s = start;
   const records: DecisionRecord[] = [];
   const snapshots: GameState[] = [];
-  for (let i = 0; i < Math.min(until, STEPS.length); i++) {
+  for (let i = from; i < Math.min(until, STEPS.length); i++) {
     const step = STEPS[i];
     if (step.startsWith("day")) {
       s = runDay(s);
@@ -232,7 +308,7 @@ export function simulate(choices: Choices, until: number = STEPS.length): Simula
       const id = step as DecisionId;
       const requested = choices[id];
       if (!requested) break; // waiting for the player
-      const fallback = isOptionLocked(s, id, requested) !== null;
+      const fallback = lockReason(s, id, requested) !== null;
       const optionId = fallback ? availableOptions(s, id)[0].id : requested;
       const before = s;
       s = applyDecision(s, id, optionId);
@@ -243,13 +319,27 @@ export function simulate(choices: Choices, until: number = STEPS.length): Simula
   return { state: s, records, snapshots };
 }
 
+/** Runs the mission from the very beginning. */
+export function simulate(choices: Choices, until: number = STEPS.length): SimulationResult {
+  return simulateFrom(createInitialState(), 0, choices, until);
+}
+
+/* ---------------- Outcome ---------------- */
+
+/** Final outcome, computed only from the simulated conditions (never from the option name, never random). */
 export function computeEnding(s: GameState): EndingId {
   const r = ENDING_RULES;
-  if (s.flags.researchEnded || s.shortfallDays > r.interrupted.maxShortfallDays || s.waterL < r.interrupted.minWater) {
+  if (s.flags.researchEnded || s.shortfallDays > r.interrupted.maxShortfallDays || s.resources.water < r.interrupted.minWater) {
     return "C";
   }
   const a = r.accomplished;
-  if (s.policy.research && s.researchPoints >= a.minResearch && s.cropPct >= a.minCrop && s.batteryKWh >= a.minBattery && s.waterL >= a.minWater) {
+  if (
+    s.policy.research &&
+    s.researchPoints >= a.minResearch &&
+    s.resources.food >= a.minFood &&
+    s.resources.energy >= a.minEnergy &&
+    s.resources.water >= a.minWater
+  ) {
     return "A";
   }
   return "B";

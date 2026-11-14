@@ -11,14 +11,14 @@ export type Status = "ok" | "warn" | "crit" | "dim";
 
 /** Map highlight for each building, driven by the simulation's facility conditions and resources. */
 export function facilityStatus(s: GameState): Record<FacilityId, Status> {
-  const bat = s.batteryKWh / BATTERY_CAP_KWH;
+  const bat = s.resources.energy / BATTERY_CAP_KWH;
   const f = s.facilities;
   return {
-    energy: bat < 0.15 ? "crit" : bat < 0.4 ? "warn" : "ok",
-    life: f.life === "strained" || s.oxygenPct < 90 ? "crit" : "ok",
+    energy: bat < 0.15 ? "crit" : f.powerStation === "low-reserve" ? "warn" : "ok",
+    life: f.lifeSupport === "strained" || s.resources.oxygen < 90 ? "crit" : "ok",
     greenhouse: f.greenhouse === "thriving" ? "ok" : f.greenhouse === "reduced" ? "warn" : "dim",
-    water: f.water === "faulty" ? "warn" : s.waterL < 200 ? "crit" : "ok",
-    shelter: f.shelter === "active" ? "warn" : "dim",
+    water: f.waterRecycling === "faulty" ? "warn" : s.resources.water < 200 ? "crit" : "ok",
+    shelter: f.shelter === "active" ? "warn" : f.shelter === "ready" ? "ok" : "dim",
     command: "ok",
   };
 }

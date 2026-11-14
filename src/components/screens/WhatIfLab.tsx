@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { DECISIONS } from "@/lib/game/decisions";
+import { lockReason } from "@/lib/game/engine";
 import type { Choices, DayLog, DecisionId, DecisionRecord } from "@/lib/game/types";
 import { judgePrediction, runWhatIf, type Prediction, type WhatIfComparison } from "@/lib/game/whatif";
 import { ENDINGS, UI, t } from "@/lib/i18n";
@@ -61,7 +62,7 @@ export function WhatIfLab({ choices, records, onDone }: { choices: Choices; reco
   const run = () => {
     if (!decision || !alt || !pred) return;
     const cmp = runWhatIf(choices, decision, alt);
-    const correct = judgePrediction(cmp.diff.batteryKWh, pred, 1);
+    const correct = judgePrediction(cmp.diff.energy, pred, 1);
     beep(correct ? "ok" : "soft");
     setResult({ cmp, prediction: pred, correct });
   };
@@ -76,8 +77,8 @@ export function WhatIfLab({ choices, records, onDone }: { choices: Choices; reco
   const explanation = useMemo(() => {
     if (!result) return null;
     const { diff } = result.cmp;
-    const e = Math.round(diff.batteryKWh);
-    const c = Math.round(diff.cropPct);
+    const e = Math.round(diff.energy);
+    const c = Math.round(diff.food);
     return t(
       `في المسار البديل: الطاقة ${e >= 0 ? "أكثر" : "أقل"} بـ ${Math.abs(e)} ك.و.س، والمحاصيل ${c >= 0 ? "أكثر" : "أقل"} بـ ${Math.abs(c)}%. إذن ما القرار الأفضل؟ الإجابة تعتمد على ما نحتاجه، والموارد المتاحة، والوقت المتبقي. هذه هي طريقة التفكير العلمي والهندسي.`,
       `In the alternative timeline: energy is ${e >= 0 ? "higher" : "lower"} by ${Math.abs(e)} kWh, and crops are ${c >= 0 ? "higher" : "lower"} by ${Math.abs(c)}%. So which decision is best? It depends on what we need, what we have, and how much time is left. That's how scientists and engineers think.`,
@@ -127,7 +128,7 @@ export function WhatIfLab({ choices, records, onDone }: { choices: Choices; reco
                 {d.options
                   .filter((o) => o.id !== rec.optionId)
                   .map((o) => {
-                    const lock = o.locked?.(rec.before) ?? null;
+                    const lock = lockReason(rec.before, d.id, o.id);
                     return (
                       <button
                         key={o.id}
@@ -173,9 +174,9 @@ export function WhatIfLab({ choices, records, onDone }: { choices: Choices; reco
           <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
             <Panel>
               <h2 className="mb-2 font-display font-bold">⚡ {tx(UI.energy)} (kWh)</h2>
-              <LineChart a={result.cmp.original.days} b={result.cmp.alternative.days} field="batteryKWh" max={300} label={tx(UI.energy)} />
+              <LineChart a={result.cmp.original.days} b={result.cmp.alternative.days} field="energy" max={300} label={tx(UI.energy)} />
               <h2 className="mb-2 mt-4 font-display font-bold">🌱 {tx(UI.food)} (%)</h2>
-              <LineChart a={result.cmp.original.days} b={result.cmp.alternative.days} field="cropPct" max={100} label={tx(UI.food)} />
+              <LineChart a={result.cmp.original.days} b={result.cmp.alternative.days} field="food" max={100} label={tx(UI.food)} />
               <div className="mt-2 flex flex-wrap gap-4 text-sm">
                 <span className="flex items-center gap-2">
                   <span className="inline-block size-3 rounded-full bg-holo" /> {tx(UI.original)}
@@ -199,16 +200,16 @@ export function WhatIfLab({ choices, records, onDone }: { choices: Choices; reco
                   <tbody dir="auto">
                     {(
                       [
-                        [UI.energy, "batteryKWh", " kWh"],
-                        [UI.water, "waterL", " L"],
-                        [UI.oxygen, "oxygenPct", "%"],
-                        [UI.food, "cropPct", "%"],
+                        [UI.energy, "energy", " kWh"],
+                        [UI.water, "water", " L"],
+                        [UI.oxygen, "oxygen", "%"],
+                        [UI.food, "food", "%"],
                       ] as const
                     ).map(([label, key, unit]) => (
                       <tr key={key} className="border-t border-holo/10">
                         <td className="py-2">{tx(label)}</td>
-                        <td dir="ltr" className="text-start">{Math.round(result.cmp.original.final[key])}</td>
-                        <td dir="ltr" className="text-start">{Math.round(result.cmp.alternative.final[key])}</td>
+                        <td dir="ltr" className="text-start">{Math.round(result.cmp.original.final.resources[key])}</td>
+                        <td dir="ltr" className="text-start">{Math.round(result.cmp.alternative.final.resources[key])}</td>
                         <td>
                           <Delta value={result.cmp.diff[key]} unit={unit} />
                         </td>

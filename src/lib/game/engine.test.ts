@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import raw from "@/data/nasa/lunar-illumination.json";
 import { calculateSolarEnergy } from "@/lib/nasa/energyModel";
 import { ILLUMINATION, loadIllumination } from "@/lib/nasa/illumination";
-import { allPaths, computeEnding, createInitialState, isOptionLocked, simulate, STEPS } from "./engine";
+import { allPaths, computeEnding, createInitialState, simulate, STEPS } from "./engine";
 import { judgePrediction, runWhatIf } from "./whatif";
 
 describe("NASA data adapter", () => {
@@ -36,68 +36,39 @@ describe("solar energy model", () => {
   });
 });
 
-describe("simulation engine", () => {
-  it("is deterministic", () => {
-    const c = { "d1-energy": "balance", "d2-water": "repair", "d3-emergency": "essential" };
-    expect(simulate(c).state).toEqual(simulate(c).state);
-  });
-
+describe("simulation basics", () => {
   it("stops at an unanswered decision", () => {
     const r = simulate({});
     expect(STEPS[r.snapshots.length]).toBe("d1-energy");
     expect(r.state.day).toBe(2);
   });
-
-  it("decisions change resources", () => {
-    const full = simulate({ "d1-energy": "farm-full" }, 3).state;
-    const bal = simulate({ "d1-energy": "balance" }, 3).state;
-    expect(full.batteryKWh).toBeLessThan(bal.batteryKWh);
-    expect(full.cropPct).toBeGreaterThan(bal.cropPct);
-  });
-
-  it("butterfly effect: Day 2 energy choice locks the Day 3 recycler boost", () => {
-    const afterFull = simulate({ "d1-energy": "farm-full" }, STEPS.indexOf("d2-water")).state;
-    const afterBal = simulate({ "d1-energy": "balance" }, STEPS.indexOf("d2-water")).state;
-    expect(isOptionLocked(afterFull, "d2-water", "boost")).not.toBeNull();
-    expect(isOptionLocked(afterBal, "d2-water", "boost")).toBeNull();
-  });
-
-  it("life support is never shed and the crew is always protected", () => {
+  it("life support is never shed and the crew stays protected on every path", () => {
     for (const c of allPaths()) {
       const s = simulate(c).state;
       expect(s.day).toBe(8);
-      expect(s.oxygenPct).toBeGreaterThanOrEqual(80);
+      expect(s.resources.oxygen).toBeGreaterThanOrEqual(80);
       expect(s.flags.safetyConfirmed).toBe(true);
     }
   });
-
-  it("all three endings are reachable", () => {
-    const endings = new Set(allPaths().map((c) => computeEnding(simulate(c).state)));
-    expect([...endings].sort()).toEqual(["A", "B", "C"]);
-  });
-
   it("initial state is sane", () => {
     const s = createInitialState();
-    expect(s.batteryKWh).toBeGreaterThan(0);
-    expect(s.day).toBe(1);
+    expect(s.resources.energy).toBeGreaterThan(0);
+    expect(s.missionStatus).toBe("IN_PROGRESS");
+  });
+  it("missionStatus matches the computed ending", () => {
+    for (const c of allPaths()) {
+      const s = simulate(c).state;
+      expect(s.missionStatus).toBe({ A: "MISSION_ACCOMPLISHED", B: "SAFE_BUT_LIMITED", C: "MISSION_INTERRUPTED" }[computeEnding(s)]);
+    }
   });
 });
 
-describe("What If Lab", () => {
-  const original = { "d1-energy": "farm-full", "d2-water": "cut-farm", "d3-emergency": "essential" };
-
-  it("does not mutate the original timeline", () => {
-    const before = JSON.stringify(simulate(original).state);
-    runWhatIf(original, "d1-energy", "balance");
-    expect(JSON.stringify(simulate(original).state)).toBe(before);
-  });
-
+describe("What If Lab (UI helpers)", () => {
   it("shows a difference when a decision changes", () => {
-    const cmp = runWhatIf(original, "d1-energy", "balance");
-    expect(cmp.diff.batteryKWh).not.toBe(0);
-    expect(cmp.alternative.records[0].optionId).toBe("balance");
+    const cmp = runWhatIf({ "d1-energy": "farm-full", "d2-water": "cut-farm", "d3-emergency": "essential" }, "d1-energy", "balance");
+    expect(cmp.diff.energy).not.toBe(0);
+    expect(cmp.alternative.records.find((r) => r.decisionId === "d1-energy")!.optionId).toBe("balance");
   });
-
   it("judges predictions", () => {
     expect(judgePrediction(20, "more")).toBe(true);
     expect(judgePrediction(-20, "more")).toBe(false);

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { computeEnding, simulate, STEPS } from "@/lib/game/engine";
+import { computeEnding, simulate, STEPS, tryApplyDecision } from "@/lib/game/engine";
 import type { Choices, DecisionId } from "@/lib/game/types";
 import { Toolbar } from "./Hud";
 import { LunarBaseScreen, MissionBriefing } from "./mission/MissionBriefing";
@@ -184,7 +184,7 @@ function GameInner() {
     hudState = next.state;
     body = <StormEvent state={next.state} onNext={() => advance(1)} />;
   } else if (step === "safety") {
-    body = <SafetyScreen onNext={() => advance(1)} />;
+    body = <SafetyScreen state={current.state} onNext={() => advance(1)} />;
   } else if (step) {
     const id = step as DecisionId;
     body = (
@@ -194,6 +194,9 @@ function GameInner() {
         state={current.state}
         records={current.records}
         onConfirm={(opt) => {
+          // The engine is the single source of truth: reject anything it does not accept.
+          const check = tryApplyDecision(current.state, id, opt);
+          if (!check.ok) return;
           setChoices((c) => ({ ...c, [id]: opt }));
           setStepIndex(stepIndex + 2); // the decision + the day it shapes
           setConsequence(id);

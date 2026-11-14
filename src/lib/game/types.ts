@@ -8,6 +8,55 @@ export type CrewId = "layan" | "adam" | "mira" | "rashed";
 export type GreenhouseLevel = "full" | "reduced" | "minimal";
 export type DecisionId = "d1-energy" | "d2-water" | "d3-emergency";
 export type Choices = Partial<Record<DecisionId, string>>;
+export type MissionId = 1 | 2 | 3;
+
+/* ---------------- Resources ---------------- */
+
+export type ResourceId = "energy" | "water" | "oxygen" | "food";
+/** energy = battery reserve (kWh) · water (L) · oxygen index (%) · food = crop growth / food supply (%) */
+export type Resources = Record<ResourceId, number>;
+
+export interface ResourceEffect {
+  resource: ResourceId;
+  delta: number;
+}
+
+/* ---------------- Facilities & safety ---------------- */
+
+/** Visible condition of each facility; changed by events, decisions and daily simulation. */
+export interface FacilityConditions {
+  powerStation: "nominal" | "low-reserve";
+  waterRecycling: "nominal" | "faulty" | "boosted" | "repaired";
+  greenhouse: "thriving" | "reduced" | "dormant";
+  lifeSupport: "nominal" | "strained";
+  shelter: "standby" | "ready" | "active";
+}
+
+/** The crew is always protected; "strained" means life support was underpowered that day. */
+export type CrewSafety = "safe" | "sheltered" | "strained";
+
+export type SafetyCheckId = "stopExternal" | "crewIndoors" | "shelterReady" | "lifeSupportConfirmed";
+
+/* ---------------- Missions & outcomes ---------------- */
+
+export type EndingId = "A" | "B" | "C";
+export type MissionOutcome = "MISSION_ACCOMPLISHED" | "SAFE_BUT_LIMITED" | "MISSION_INTERRUPTED";
+export type MissionStatus = "IN_PROGRESS" | MissionOutcome;
+
+/** What a mission chapter's decision produced, stored for the following chapters. */
+export interface MissionChapterResult {
+  missionId: MissionId;
+  decisionId: DecisionId;
+  optionId: string;
+  day: number;
+  consequences: T[];
+}
+
+export interface HistoryEntry {
+  decisionId: DecisionId;
+  optionId: string;
+  day: number;
+}
 
 export interface Policy {
   greenhouse: GreenhouseLevel;
@@ -15,20 +64,6 @@ export interface Policy {
   recyclerBoost: boolean;
   ration: boolean;
 }
-
-export type MissionId = 1 | 2 | 3;
-
-/** Visible condition of each facility; changed by events and decisions, shown on the base map. */
-export interface FacilityConditions {
-  energy: "nominal" | "serviced";
-  water: "nominal" | "faulty" | "repaired";
-  greenhouse: "thriving" | "reduced" | "dormant";
-  life: "nominal" | "strained";
-  shelter: "standby" | "active";
-}
-
-/** The crew is always protected; "strained" means life support was underpowered that day. */
-export type CrewSafety = "safe" | "sheltered" | "strained";
 
 export interface DayLog {
   day: number;
@@ -45,33 +80,25 @@ export interface DayLog {
   crewWaterUseL: number;
   greenhouseWaterL: number;
   cropGrowth: number;
-  batteryKWh: number;
-  waterL: number;
-  oxygenPct: number;
-  cropPct: number;
+  /** resources at the end of the day */
+  energy: number;
+  water: number;
+  oxygen: number;
+  food: number;
 }
 
-export interface HistoryEntry {
-  decisionId: DecisionId;
-  optionId: string;
-  day: number;
-}
-
+/** The single authoritative game state. */
 export interface GameState {
   /** Next day to simulate (1..8). 8 means the mission is over. */
   day: number;
-  /** active mission chapter (derived from the day) */
-  mission: MissionId;
+  activeMissionId: MissionId;
+  resources: Resources;
   facilities: FacilityConditions;
   crewSafety: CrewSafety;
-  /** decisions taken so far, in order */
-  history: HistoryEntry[];
-  /** set when Day 7 ends */
-  outcome: EndingId | null;
-  batteryKWh: number;
-  waterL: number;
-  oxygenPct: number;
-  cropPct: number;
+  safetyChecks: Record<SafetyCheckId, boolean>;
+  decisionHistory: HistoryEntry[];
+  missionResults: MissionChapterResult[];
+  missionStatus: MissionStatus;
   researchPoints: number;
   performanceFactor: number;
   recyclerEfficiency: number;
@@ -79,7 +106,6 @@ export interface GameState {
   /** one-day overrides (e.g. crew busy repairing) */
   today: { extraLoadKWh: number; researchPaused: boolean };
   flags: {
-    panelsInspected: boolean;
     recyclerFault: boolean;
     recyclerRepairPending: boolean;
     storm: boolean;
@@ -105,14 +131,32 @@ export type StepId =
   | "day6"
   | "day7";
 
+/* ---------------- Data-driven decisions ---------------- */
+
+export type Prerequisite =
+  | { kind: "resource-min"; resource: ResourceId; min: number; reason: T }
+  | { kind: "safety-checks"; reason: T };
+
+/** A decision option is pure DATA: the engine interprets it, the UI renders it. */
 export interface DecisionOption {
   id: string;
   label: T;
+  description: T;
   benefit: T;
   cost: T;
-  /** returns null when allowed, otherwise the reason it is locked */
-  locked?: (s: GameState) => T | null;
-  apply: (s: GameState) => GameState;
+  prerequisites?: Prerequisite[];
+  /** ongoing operating plan from now on */
+  policy?: Partial<Policy>;
+  /** immediate one-time resource changes (validated against limits) */
+  resourceEffects?: ResourceEffect[];
+  facilityEffects?: Partial<FacilityConditions>;
+  /** one-day effects (extra work today) */
+  today?: Partial<GameState["today"]>;
+  flags?: Partial<GameState["flags"]>;
+  /** stored for later missions and shown to the player */
+  consequences: T[];
+  /** the science behind the choice */
+  explanation: T;
   suhail: T;
   crew: { who: CrewId; text: T };
 }
@@ -120,7 +164,7 @@ export interface DecisionOption {
 export interface Decision {
   id: DecisionId;
   day: number;
-  mission: 1 | 2 | 3;
+  mission: MissionId;
   title: T;
   problem: T;
   science: T;
@@ -139,8 +183,6 @@ export interface DecisionRecord {
   after: GameState;
 }
 
-export type EndingId = "A" | "B" | "C";
-
 export type EventId = "evt-fault" | "evt-storm" | "safety";
 
 /** A mission chapter: its days, its decision and the event that opens it. */
@@ -151,12 +193,6 @@ export interface Mission {
   days: number[];
   decision: DecisionId;
   openingEvent?: EventId;
-}
-
-export type ResourceKey = "batteryKWh" | "waterL" | "oxygenPct" | "cropPct";
-export interface ResourceEffect {
-  resource: ResourceKey;
-  delta: number;
 }
 
 /** One explained consequence ("what changed, and why"). */
@@ -176,7 +212,8 @@ export interface GameEvent {
 
 export interface MissionResult {
   ending: EndingId;
+  outcome: MissionOutcome;
   crewSafe: true;
-  final: Record<ResourceKey, number>;
+  final: Resources;
   reasons: T[];
 }

@@ -9,13 +9,11 @@ type Icon = "sun" | "dim" | "balance" | "inspect" | "recycle" | "leafDrop" | "wr
 
 const ART: Record<string, { bg: "greenhouse" | "base"; icon: Icon; color: string; dim?: boolean }> = {
   "farm-full": { bg: "greenhouse", icon: "sun", color: "#43d9a3" },
-  "farm-reduced": { bg: "greenhouse", icon: "dim", color: "#ffad4d", dim: true },
+  "save-energy": { bg: "greenhouse", icon: "battery", color: "#ffad4d", dim: true },
   balance: { bg: "base", icon: "balance", color: "#50e3f0" },
-  inspect: { bg: "base", icon: "inspect", color: "#ffad4d" },
   boost: { bg: "base", icon: "recycle", color: "#4fe5ff" },
   "cut-farm": { bg: "greenhouse", icon: "leafDrop", color: "#ffad4d", dim: true },
   repair: { bg: "base", icon: "wrench", color: "#43d9a3" },
-  ration: { bg: "base", icon: "drop", color: "#50e3f0" },
   "full-ops": { bg: "base", icon: "flask", color: "#8c78ff" },
   essential: { bg: "base", icon: "shield", color: "#43d9a3" },
   conserve: { bg: "base", icon: "battery", color: "#ff6b6b", dim: true },
