@@ -1,5 +1,23 @@
 # progress.md
 
+## 2026-11-14 · V0.3: Lunar base & mission briefing
+**Done**
+- `MissionBriefing`: 4 steps with a step indicator (Mission → Commander → Crew → Resources → Base) introducing Operation Moonlight,
+  SELENE-1, the child as commander, the 7 fictional days and 3 missions, the 4 astronauts and the 4 resources
+- `LunarBaseScreen`: isometric 2.5D base with 6 selectable facilities. A tap/click on a building, or the keyboard-friendly
+  button list (48 px targets), opens a `FacilityCard` showing what it does, who runs it, which resources it uses and makes, and a SUHAIL question.
+  "Begin Day 1" unlocks after 3 facilities are visited
+- `SuhailDialogue`: SUHAIL asks a question first and the child reveals the explanation, so SUHAIL never decides
+- `ResourceIndicator` (HUD bar + large tile like the approved results mockup), `MissionHUD`, `CrewCard`, `Stepper`; orange `solar` CTA button from the mockups
+- Crew identities: Layan cyan, Adam orange, Mira green, Rashid coral (renamed from "Rashed" to match the spec)
+- Shared typed content in `src/lib/mission.ts` (resources, facilities) reading from the existing typed `GameState` (`src/lib/game/types.ts`)
+- Starting resource values are labelled on screen as illustrative game values, not NASA measurements
+- Tests: 20 passing (4 new for mission content) · tsc ✓ · eslint ✓ · build ✓ · checked in browser at desktop and 375 px mobile, no console errors
+
+**Notes**
+- The team's mockups (decision and results screens) were used as style reference: step indicator, glowing cards, orange CTA, resource tiles.
+  Their illustrated SUHAIL and base art can replace the SVG placeholders once delivered as separate files
+
 ## 2026-11-14 · V0.2: Visual shell & start menu
 **Done**
 - Cinematic responsive start screen: SELENE-1 lunar horizon (low Sun, polar shadows, Earth, lit base kept clear of buttons),

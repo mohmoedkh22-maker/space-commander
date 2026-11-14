@@ -1,59 +1,13 @@
 "use client";
 import { BATTERY_CAP_KWH } from "@/lib/game/config";
-import type { GameState, T } from "@/lib/game/types";
+import type { GameState } from "@/lib/game/types";
 import { t } from "@/lib/i18n";
 import { useSettings } from "./settings";
 
-export type FacilityId = "energy" | "life" | "greenhouse" | "water" | "shelter" | "command";
-export type Status = "ok" | "warn" | "crit" | "dim";
+import { FACILITIES, type FacilityId } from "@/lib/mission";
 
-export const FACILITIES: Record<FacilityId, { name: T; info: T; color: string }> = {
-  energy: {
-    name: t("محطة الطاقة", "Energy Station"),
-    info: t(
-      "تجمع الألواح الشمسية الضوء لإنتاج الكهرباء، وتخزّن البطاريات جزءًا منها لاستخدامه عندما يقل الضوء.",
-      "Solar panels turn sunlight into electricity, and batteries store some of it for when there's less light.",
-    ),
-    color: "#ffad4d",
-  },
-  life: {
-    name: t("دعم الحياة", "Life Support"),
-    info: t(
-      "من أهم أنظمة القاعدة. يحافظ على هواء صالح للتنفس ودرجة حرارة مناسبة للطاقم.",
-      "One of the most important systems. It keeps the air breathable and the temperature right for the crew.",
-    ),
-    color: "#50e3f0",
-  },
-  greenhouse: {
-    name: t("المزرعة", "Greenhouse"),
-    info: t(
-      "هنا نزرع المحاصيل. تحتاج النباتات إلى الماء والضوء والطاقة والوقت حتى تنمو.",
-      "We grow crops here. Plants need water, light, energy — and time — to grow.",
-    ),
-    color: "#43d9a3",
-  },
-  water: {
-    name: t("وحدة تدوير المياه", "Water Recycling"),
-    info: t(
-      "تنقّي المياه وتعيد استخدامها. تشغيلها يحتاج إلى كهرباء.",
-      "Cleans water so we can use it again. It needs electricity to run.",
-    ),
-    color: "#326bff",
-  },
-  shelter: {
-    name: t("المأوى المحمي", "Safety Shelter"),
-    info: t(
-      "مكان محمي بدروع سميكة يلجأ إليه الطاقم وقت الطقس الفضائي الخطر.",
-      "A thickly shielded room where the crew goes during dangerous space weather.",
-    ),
-    color: "#8c78ff",
-  },
-  command: {
-    name: t("مركز القيادة", "Command Center"),
-    info: t("من هنا تقود المهمة وتتابع كل الأنظمة.", "This is where you lead the mission and watch every system."),
-    color: "#f3f6fc",
-  },
-};
+export { FACILITIES, type FacilityId };
+export type Status = "ok" | "warn" | "crit" | "dim";
 
 export function facilityStatus(s: GameState): Record<FacilityId, Status> {
   const bat = s.batteryKWh / BATTERY_CAP_KWH;

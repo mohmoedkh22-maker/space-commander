@@ -2,9 +2,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { computeEnding, simulate, STEPS } from "@/lib/game/engine";
 import type { Choices, DecisionId } from "@/lib/game/types";
-import { Hud, Toolbar } from "./Hud";
+import { Toolbar } from "./Hud";
+import { LunarBaseScreen, MissionBriefing } from "./mission/MissionBriefing";
+import { MissionHUD } from "./mission/MissionHUD";
 import { SettingsProvider } from "./settings";
-import { Briefing, Splash, Tour } from "./screens/Intro";
+import { Splash } from "./screens/Intro";
 import { ConsequenceScreen, DayScreen, DecisionScreen, FaultEvent, SafetyScreen, StormEvent } from "./screens/Mission";
 import { OutcomeScreen, ReportScreen } from "./screens/Outcome";
 import { ScienceScreen } from "./screens/Science";
@@ -54,14 +56,14 @@ function GameInner() {
 
   if (science) return <ScienceScreen onBack={() => setScience(false)} />;
   if (screen === "splash") return <Splash onStart={() => setScreen("briefing")} onScience={() => setScience(true)} />;
-  if (screen === "briefing") return <Briefing onDone={() => setScreen("tour")} />;
-  if (screen === "tour") return <Tour onDone={() => setScreen("play")} />;
+  if (screen === "briefing") return <MissionBriefing onDone={() => setScreen("tour")} />;
+  if (screen === "tour") return <LunarBaseScreen onDone={() => setScreen("play")} onScience={() => setScience(true)} />;
 
   const ending = computeEnding(final.state);
   if (screen === "outcome") {
     return (
       <>
-        <Hud state={final.state} onScience={() => setScience(true)} />
+        <MissionHUD state={final.state} onScience={() => setScience(true)} />
         <OutcomeScreen ending={ending} state={final.state} onLab={() => setScreen("lab")} />
       </>
     );
@@ -136,7 +138,7 @@ function GameInner() {
 
   return (
     <>
-      <Hud state={hudState} onScience={() => setScience(true)} />
+      <MissionHUD state={hudState} onScience={() => setScience(true)} />
       {body}
     </>
   );

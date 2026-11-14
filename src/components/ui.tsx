@@ -4,7 +4,7 @@ import { CREW } from "@/lib/i18n";
 import type { CrewId, T } from "@/lib/game/types";
 import { useSettings } from "./settings";
 
-type Variant = "primary" | "ghost" | "violet";
+type Variant = "primary" | "ghost" | "violet" | "solar";
 
 export function Button({
   variant = "primary",
@@ -16,6 +16,9 @@ export function Button({
     primary: "bg-cosmic text-white hover:brightness-110 shadow-[0_0_24px_#326bff66]",
     ghost: "border border-holo/40 text-lunar hover:border-holo hover:bg-holo/10",
     violet: "bg-violet text-white hover:brightness-110 shadow-[0_0_24px_#8c78ff66]",
+    // Main "confirm / next" call to action, matching the approved mockups (glowing orange pill)
+    solar:
+      "rounded-full border-2 border-[#ffd59a] bg-gradient-to-b from-[#ffb85c] to-[#f08a1c] text-space hover:brightness-110 shadow-[0_0_28px_#ffad4d88]",
   };
   const sizes = {
     md: "min-h-12 px-6 py-3 text-base sm:text-lg",

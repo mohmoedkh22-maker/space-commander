@@ -3,11 +3,35 @@ import type { CrewId, EndingId, Lang, T } from "@/lib/game/types";
 export const t = (ar: string, en: string): T => ({ ar, en });
 export const tr = (x: T, lang: Lang) => x[lang];
 
-export const CREW: Record<CrewId, { name: T; role: T; color: string; initial: string }> = {
-  layan: { name: t("ليان", "Layan"), role: t("أخصائية دعم الحياة", "Life Support Specialist"), color: "#50e3f0", initial: "L" },
-  adam: { name: t("آدم", "Adam"), role: t("مهندس الطاقة", "Energy Engineer"), color: "#ffad4d", initial: "A" },
-  mira: { name: t("ميرا", "Mira"), role: t("عالمة نبات فضائية", "Space Botanist"), color: "#43d9a3", initial: "M" },
-  rashed: { name: t("راشد", "Rashed"), role: t("ضابط السلامة والعمليات", "Safety & Operations"), color: "#8c78ff", initial: "R" },
+export const CREW: Record<CrewId, { name: T; role: T; color: string; initial: string; duty: T }> = {
+  layan: {
+    name: t("ليان", "Layan"),
+    role: t("أخصائية دعم الحياة", "Life Support Specialist"),
+    color: "#50e3f0",
+    initial: "L",
+    duty: t("تراقب الهواء والماء واحتياجات الطاقم اليومية.", "Looks after the air, the water and the crew's daily needs."),
+  },
+  adam: {
+    name: t("آدم", "Adam"),
+    role: t("مهندس الطاقة", "Energy Engineer"),
+    color: "#ffad4d",
+    initial: "A",
+    duty: t("مسؤول عن الألواح الشمسية والبطاريات وتوزيع الكهرباء.", "Runs the solar panels, the batteries and how power is shared."),
+  },
+  mira: {
+    name: t("ميرا", "Mira"),
+    role: t("عالمة نبات فضائية", "Space Botanist"),
+    color: "#43d9a3",
+    initial: "M",
+    duty: t("تعتني بالمزرعة ونمو المحاصيل التي تصبح غذاءنا.", "Cares for the greenhouse and the crops that become our food."),
+  },
+  rashed: {
+    name: t("راشد", "Rashid"),
+    role: t("ضابط السلامة والعمليات", "Safety & Operations Officer"),
+    color: "#ff6b6b",
+    initial: "R",
+    duty: t("يقود إجراءات السلامة والعمل الخارجي وحالات الطوارئ.", "Leads safety procedures, outside work and emergencies."),
+  },
 };
 
 export const UI = {

@@ -1,11 +1,9 @@
 "use client";
 import { useState } from "react";
-import { CREW, UI, t } from "@/lib/i18n";
-import type { CrewId } from "@/lib/game/types";
-import { FACILITIES, LunarBase, type FacilityId } from "../LunarBase";
+import { UI, t } from "@/lib/i18n";
 import { useSettings } from "../settings";
-import { SuhailBot, SuhailSays } from "../Suhail";
-import { Button, Kicker, Modal, Panel, PlaceholderTag } from "../ui";
+import { SuhailBot } from "../Suhail";
+import { Button, Kicker, Modal, PlaceholderTag } from "../ui";
 import { LunarHorizon, OrbitStarLogo } from "../Brand";
 import { SETTINGS_TEXT, SettingsModal } from "../SettingsModal";
 
@@ -135,108 +133,5 @@ export function Splash({ onStart, onScience }: { onStart: () => void; onScience:
       </Modal>
       <SettingsModal open={settings} onClose={() => setSettings(false)} />
     </div>
-  );
-}
-
-const BRIEF = [
-  t(
-    "مرحبًا أيها القائد! وصلت أخيرًا إلى القاعدة SELENE-1 قرب القطب الجنوبي للقمر. أنا سهيل، مساعدك الذكي خلال هذه المهمة.",
-    "Welcome, Commander! You've finally reached SELENE-1, a base near the Moon's south pole. I'm SUHAIL, your smart assistant for this mission.",
-  ),
-  t(
-    "يعيش هنا أربعة رواد فضاء. لا توجد متاجر، ولا يمكننا انتظار المساعدة من الأرض في أي لحظة.",
-    "Four astronauts live here. There are no shops, and we can't expect help from Earth at any moment.",
-  ),
-  t(
-    "لدينا الطاقة والماء والغذاء والهواء — لكنها محدودة، والأهم أنها تعتمد على بعضها. قراراتك ستحدد كيف نستخدمها خلال سبعة أيام. هل أنت مستعد؟",
-    "We have power, water, food and air — but they're limited, and they depend on each other. Your decisions will decide how we use them for seven days. Ready?",
-  ),
-];
-
-export function Briefing({ onDone }: { onDone: () => void }) {
-  const { tx } = useSettings();
-  const [i, setI] = useState(0);
-  return (
-    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center gap-6 px-4 py-10">
-      <p className="font-display text-sm font-bold tracking-[0.25em] text-holo">SELENE-1 — LUNAR RESEARCH OUTPOST</p>
-      <SuhailSays key={i} text={BRIEF[i]} mood={i === 0 ? "happy" : "normal"} />
-      {i === 1 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {(Object.keys(CREW) as CrewId[]).map((id) => (
-            <Panel key={id} className="!p-3 text-center anim-rise">
-              <div className="mx-auto mb-2 grid size-12 place-items-center rounded-full font-display text-lg font-bold text-space" style={{ background: CREW[id].color }} aria-hidden>
-                {CREW[id].initial}
-              </div>
-              <b>{tx(CREW[id].name)}</b>
-              <p className="text-sm text-moon">{tx(CREW[id].role)}</p>
-            </Panel>
-          ))}
-        </div>
-      )}
-      <div className="flex justify-end">
-        <Button onClick={() => (i < BRIEF.length - 1 ? setI(i + 1) : onDone())}>
-          {i < BRIEF.length - 1 ? tx(UI.next) : tx(UI.start)}
-        </Button>
-      </div>
-    </main>
-  );
-}
-
-export function Tour({ onDone }: { onDone: () => void }) {
-  const { tx } = useSettings();
-  const [sel, setSel] = useState<FacilityId | null>(null);
-  const [seen, setSeen] = useState<Set<FacilityId>>(new Set());
-  const pick = (id: FacilityId) => {
-    setSel(id);
-    setSeen((s) => new Set(s).add(id));
-  };
-  return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
-      <h1 className="mb-1 font-display text-3xl font-bold">{tx(UI.tourTitle)}</h1>
-      <p className="mb-4 text-moon">{tx(UI.tourHint)}</p>
-      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-        <Panel className="!p-2">
-          <LunarBase
-            status={{ energy: "ok", life: "ok", greenhouse: "ok", water: "ok", shelter: "dim", command: "ok" }}
-            onSelect={pick}
-            selected={sel}
-          />
-        </Panel>
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-2" role="group" aria-label={tx(UI.tourTitle)}>
-            {(Object.keys(FACILITIES) as FacilityId[]).map((id) => (
-              <button
-                key={id}
-                onClick={() => pick(id)}
-                aria-pressed={sel === id}
-                className="rounded-xl border px-3 py-2 text-sm aria-pressed:bg-holo/15"
-                style={{ borderColor: FACILITIES[id].color + "88" }}
-              >
-                {seen.has(id) ? "✓ " : ""}
-                {tx(FACILITIES[id].name)}
-              </button>
-            ))}
-          </div>
-          {sel ? (
-            <Panel className="anim-rise" key={sel} style={{ borderColor: FACILITIES[sel].color + "88" }}>
-              <div className="flex items-start gap-3">
-                <SuhailBot mood="curious" size={56} />
-                <div>
-                  <h2 className="font-display text-xl font-bold" style={{ color: FACILITIES[sel].color }}>
-                    {tx(FACILITIES[sel].name)}
-                  </h2>
-                  <p className="mt-1 leading-relaxed">{tx(FACILITIES[sel].info)}</p>
-                </div>
-              </div>
-            </Panel>
-          ) : (
-            <SuhailSays compact text={t("قبل أن نبدأ، دعني أريك المكان الذي ستكون مسؤولًا عنه.", "Before we start, let me show you the place you're responsible for.")} />
-          )}
-          <Button onClick={onDone} disabled={seen.size < 3} className="mt-auto">
-            {tx(UI.tourDone)} {seen.size < 3 && `(${seen.size}/3)`}
-          </Button>
-        </div>
-      </div>
-    </main>
   );
 }
