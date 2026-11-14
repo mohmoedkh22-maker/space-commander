@@ -2,6 +2,19 @@
 
 **Live:** https://space-commander-theta.vercel.app
 
+## V4 — 2026-11-14 · NASA Science Integration (tag `V4`)
+
+### Added
+- Daily sunlight from **NASA SVS 4930** (*Illumination at the Moon's South Pole, 2023 to 2030*): every 2-hour frame of 2026
+  measured at the SELENE-1 site with a reproducible script (`scripts/extract_svs_illumination.py`, `scripts/build_svs_dataset.py`).
+  Site sunlit 91.3 % of 2026, versus the LOLA 18.6-year average of 88.4 %. The Shackleton floor control reads 0 %
+- `NASADataAdapter`: schema and date validation, real-week lookups, and a labelled LOLA fallback for missing data. Static data, works offline
+- Engine: each mission day uses the NASA value for its real date (week of 29 May 2026). The fictional light curve was removed
+- About the Science screen: the whole year as a chart, a mission/brightest/darkest real-week scenario selector with energy per day,
+  model inputs colour-coded (NASA vs game assumptions), checks, simplifications and sources
+- SVS 5027 reviewed and documented (its labels cover the site, so the companion product SVS 4930 is sampled)
+- 67 automated tests (15 new for the NASA data)
+
 ## V3 — 2026-11-14 · Cinematic Gameplay Experience (tag `V3`)
 
 ### Added
