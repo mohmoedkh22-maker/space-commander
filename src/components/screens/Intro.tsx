@@ -145,7 +145,7 @@ export function Splash({
 
       <footer className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 pb-4 text-sm text-moon">
         <span>
-          {tx(MENU.credit)} · <span dir="ltr">v{pkg.version}</span>
+          {tx(MENU.credit)} · <span dir="ltr">V{pkg.version.split(".")[0]}</span>
         </span>
         <PlaceholderTag text={tx(MENU.placeholder)} />
       </footer>

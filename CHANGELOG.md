@@ -2,6 +2,19 @@
 
 **Live:** https://space-commander-theta.vercel.app
 
+## V3 — 2026-11-14 · Cinematic Gameplay Experience (tag `V3`)
+
+### Added
+- Cinematic intro for each mission: atmosphere, title reveal, crew and SUHAIL dialogue, objective, Skip
+- Interactive base: live facility conditions from the engine, a battery gauge, an emergency beacon,
+  facility inspection with crew reports and equipment checks that reveal clues; the decision room unlocks after investigating
+- Data-driven emergency events: solar-forecast energy warning, water-system fault, space weather (critical), low reserve, crop delay
+- Decisions show the player's investigation notes and each option's real daily energy cost (computed by the engine)
+- Visible consequences: the base map animates from "before" to "now"; resource numbers count to their new values; facility changes are listed
+- Mission debrief after each chapter: status, decision, resource changes, facilities, crew safety, and which next-mission options are locked or open
+- Decision & simulation engine (V0.4): authoritative GameState, 3 data-driven options per mission, engine-enforced safety steps, SUHAIL dialogue rules
+- 52 automated tests
+
 ## v0.2 — 2026-11-14 · Cinematic Introduction (tag `v0.2`)
 
 ### Added
