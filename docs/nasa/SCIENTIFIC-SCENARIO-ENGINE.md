@@ -1,7 +1,7 @@
 # Scientific Scenario Engine (WP06.4)
 
-**Status:** educational data layer. **Gameplay, the simulation engine, resource calculations, decision mechanics, the What If engine,
-SUHAIL's design and the UI are unchanged.** Nothing in the game reads the scenarios yet.
+**Status:** educational data layer (WP06.4), **shown in the game since WP06.5** (see [In the game](#in-the-game-wp065)). The simulation
+engine, resource calculations, decision mechanics, the What If engine and SUHAIL's design are unchanged; lessons never change the mission.
 
 The engine turns the cached NASA datasets into structured, traceable, bilingual (AR/EN) **educational scenarios**. Every number in a scenario
 is copied from an identified NASA record. Nothing is computed into a new physical quantity, converted, filled in or invented.
@@ -137,8 +137,58 @@ Each scenario has a `whatIf` hook:
 
 The What If engine and decision mechanics are **not modified**; only their public types are referenced.
 
+## In the game (WP06.5)
+**How players reach the lessons**
+- Start menu → **🔭 SUHAIL's Science Lessons** (`data-menu-item="lessons"`, right after "About the Science")
+- Commander Report (end of the mission) → **🔭 SUHAIL's Science Lessons**
+
+The lessons open as an overlay like "About the Science", so the mission underneath keeps its place.
+
+**Guided path** (`src/components/screens/ScienceLessons.tsx`):
+
+1. **Home:**
+   - SUHAIL's welcome.
+   - The **three featured lessons**, with the next one highlighted and ✓ on finished ones.
+   - "x / 3 lessons done".
+   - An optional **Science archive** with all 27 scenarios grouped by category, each expandable.
+2. **Lesson, step 1:** SUHAIL's introduction, with his expression from the lesson data.
+3. **Step 2:**
+   - The child-friendly explanation.
+   - The **NASA source** panel: classification badge, dataset, observation date, where it was measured, the recorded value with
+     its unit (or "No measured value in this record"), NASA record ids (DONKI ids link to the DONKI page) and the scientific limits.
+4. **Step 3:**
+   - The challenge and 2–3 choices.
+   - On a choice, SUHAIL gives **educational feedback**. The child may try the other choices.
+   - The learning objective follows, with "This lesson does not change your base's resources or decisions".
+5. **What If connection:**
+   - It shows the game's Mission 03 storm as **🎮 Simulated: a game training scenario** next to the lesson's **🛰 Historical NASA
+     record**, then the scenario's qualitative What If question.
+   - If this session's mission is finished, it also shows the child's real choice for *The Final Signal* (`d3-emergency`) and a
+     button that opens the existing **What If Lab** with the unchanged decision history. Otherwise it asks the child to finish
+     the mission first.
+   - No numbers are compared or invented.
+
+**Logic** (`src/lib/game/scienceLessons.ts`, pure):
+- lesson progress under its own key `space-commander-science-lessons` (never `space-commander-progress`), with sanitised parsing
+- classification and dataset labels
+- `whatIfConnection()`
+- `isolateLtr()`, which keeps NASA ids, ISO dates, instrument names and units readable inside Arabic sentences (Unicode
+  directional isolates; the visible characters are unchanged)
+
+The scenario file is loaded with a code-split `import()` from `public/data/scenarios/scenarios.json`. This is a local static
+file, not a NASA request, and the first-load JavaScript is unchanged.
+
+**Tests:**
+- `src/lib/game/scienceLessons.test.ts`
+- `src/components/screens/ScienceLessons.test.tsx`
+- `src/components/ScienceLessons.game.test.tsx`
+
+They cover navigation, rendering, attribution, labels, choices, feedback, the What If hand-off, save/load, Arabic and the
+responsive layout. The start-menu test now expects the new `lessons` item.
+
 ## Limitations
-- The scenarios are educational data only. Using them in the UI or the What If Lab will be a separate, documented stage.
+- The What If connection is qualitative. The What If engine does not simulate NASA events, and radiation never becomes a resource
+  effect.
 - May 2024 is a historical period. It is **not** the game's mission week (2026-05-29) and must never be presented as a forecast.
 - FLR details are unavailable until NASA's FLR endpoint works again.
 - The "quiet" and "busiest" days are relative to May 2024 in each dataset only.

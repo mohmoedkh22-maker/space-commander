@@ -1,5 +1,21 @@
 # progress.md
 
+## 2026-11-15 · WP06.5: Scientific gameplay integration
+The three SUHAIL lessons are now playable in the game. Resources, decisions, day progression, endings, the What If engine and the
+mission save are unchanged. Details: `docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md` → "In the game".
+
+**Done**
+- `src/components/screens/ScienceLessons.tsx`:
+  - lessons home with 3 featured lessons, progress and an optional Science archive (27 scenarios)
+  - guided lesson flow: intro → explanation + NASA source → challenge → feedback → learning objective → What If connection
+- `src/lib/game/scienceLessons.ts`: separate lesson progress (`space-commander-science-lessons`), historical/simulated labels,
+  qualitative What If connection, bidi-safe Arabic for NASA ids/dates
+- Entry points:
+  - start menu item **🔭 SUHAIL's Science Lessons**
+  - a button on the Commander Report
+  - "Open the What If Lab" from a lesson, after a finished mission
+- Tests: **27 new** (logic 10, screen 13, game integration 4). The start-menu test expects the new menu item
+
 ## 2026-11-15 · WP06.4: Scientific Scenario Engine
 Educational data layer only. **Gameplay, the simulation engine, resources, decision mechanics, the What If engine, SUHAIL's design and the UI are
 unchanged**; nothing in the game reads the scenarios yet. Details: `docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md`.

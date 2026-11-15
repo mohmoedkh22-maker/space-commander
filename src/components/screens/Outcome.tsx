@@ -86,6 +86,7 @@ export function ReportScreen({
   records,
   lab,
   onScience,
+  onLessons,
   onRestart,
 }: {
   ending: EndingId;
@@ -93,6 +94,8 @@ export function ReportScreen({
   records: DecisionRecord[];
   lab: LabResult | null;
   onScience: () => void;
+  /** WP06.5: SUHAIL's NASA science lessons (optional) */
+  onLessons?: () => void;
   onRestart: () => void;
 }) {
   const { tx } = useSettings();
@@ -207,6 +210,11 @@ export function ReportScreen({
         <Button variant="ghost" onClick={onScience}>
           🛰 {tx(UI.science)}
         </Button>
+        {onLessons && (
+          <Button variant="ghost" onClick={onLessons}>
+            🔭 {tx(t("دروس سهيل العلمية", "SUHAIL's Science Lessons"))}
+          </Button>
+        )}
         <Button onClick={onRestart}>🔁 {tx(UI.playAgain)}</Button>
       </div>
     </main>

@@ -20,6 +20,7 @@ const MENU = {
   replay: t("إعادة المقدمة", "Replay intro"),
   guide2: t("الطاقم والقاعدة", "Crew & base"),
   guide: t("العلم والمصادر", "About the Science"),
+  lessons: t("دروس سهيل العلمية", "SUHAIL's Science Lessons"),
   startMission: t("ابدأ المهمة", "START MISSION"),
   resume: t("متابعة مهمتي", "Continue my mission"),
   placeholder: t(
@@ -54,7 +55,7 @@ const MENU = {
 };
 
 interface Item {
-  id: "start" | "resume" | "story" | "guide" | "science" | "replay" | "settings";
+  id: "start" | "resume" | "story" | "guide" | "science" | "lessons" | "replay" | "settings";
   icon: string;
   label: T;
   hint: T;
@@ -68,6 +69,7 @@ export function Splash({
   onScience,
   onReplayIntro,
   onGuide,
+  onLessons,
   resumeDay,
   onResume,
   resumeFinished = false,
@@ -76,6 +78,8 @@ export function Splash({
   onScience: () => void;
   onReplayIntro?: () => void;
   onGuide?: () => void;
+  /** WP06.5: SUHAIL's NASA science lessons */
+  onLessons?: () => void;
   resumeDay?: number;
   onResume?: () => void;
   /** the saved mission is already finished: offer its result instead of "continue" */
@@ -160,6 +164,18 @@ export function Splash({
       face: "explaining",
       action: onScience,
     },
+    ...(onLessons
+      ? [
+          {
+            id: "lessons" as const,
+            icon: "🔭",
+            label: MENU.lessons,
+            hint: t("ثلاثة دروس من بيانات ناسا الحقيقية عن الشمس والإشعاع. هيا نتعلّم معًا!", "Three lessons from real NASA data about the Sun and radiation. Let's learn together!"),
+            face: "curious" as const,
+            action: onLessons,
+          },
+        ]
+      : []),
     ...(onReplayIntro
       ? [
           {

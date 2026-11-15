@@ -32,7 +32,8 @@ describe("Phase 3 — start menu", () => {
     settings({ lang: "en" });
     render(<Game />);
     await waitFor(() => expect(items().length).toBeGreaterThan(0));
-    expect(items().map((b) => b.dataset.menuItem)).toEqual(["start", "story", "guide", "science", "replay", "settings"]);
+    // WP06.5 added "lessons" (SUHAIL's NASA science lessons) right after "About the Science"
+    expect(items().map((b) => b.dataset.menuItem)).toEqual(["start", "story", "guide", "science", "lessons", "replay", "settings"]);
     await waitFor(() => expect(document.activeElement).toBe(items()[0]));
     expect(screen.getByText(/Welcome, Commander!/)).toBeTruthy();
     expect(suhail()).toBe("happy");

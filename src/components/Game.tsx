@@ -20,6 +20,7 @@ import type { MissionId } from "@/lib/game/types";
 import { ConsequenceScreen, DecisionScreen } from "./mission/DecisionCards";
 import { OutcomeScreen, ReportScreen } from "./screens/Outcome";
 import { ScienceScreen } from "./screens/Science";
+import { ScienceLessons } from "./screens/ScienceLessons";
 import { WhatIfLab, type LabResult } from "./screens/WhatIfLab";
 import { Scene } from "./experience/Journey";
 import { OrbitStarLogo } from "./Brand";
@@ -38,6 +39,8 @@ function GameInner() {
   const { introDone, set, ready, music, audioReady, beep } = useSettings();
   const [screen, setScreen] = useState<Screen>("splash");
   const [science, setScience] = useState(false);
+  // WP06.5: SUHAIL's NASA science lessons (an overlay like "About the Science"; never changes the mission)
+  const [lessons, setLessons] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [choices, setChoices] = useState<Choices>({});
   const [consequence, setConsequence] = useState<DecisionId | null>(null);
@@ -57,7 +60,7 @@ function GameInner() {
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
-  }, [screen, stepIndex, consequence, science]);
+  }, [screen, stepIndex, consequence, science, lessons]);
 
   // Optional session progress on this device (no accounts). Read once, write while playing.
   const [saved, setSaved] = useState<SavedProgress | null>(null);
@@ -132,6 +135,7 @@ function GameInner() {
       setSaved(parseProgress(localStorage.getItem(PROGRESS_KEY)));
     } catch {}
     setScience(false);
+    setLessons(false);
     setScreen("splash");
   };
 
@@ -149,6 +153,25 @@ function GameInner() {
   // wrong screen (the menu before the opening) or the wrong language.
   if (!ready) return <Boot />;
   if (science) return <ScienceScreen onBack={() => setScience(false)} />;
+  if (lessons) {
+    const missionComplete = stepIndex >= STEPS.length;
+    return (
+      <ScienceLessons
+        onBack={() => setLessons(false)}
+        choices={choices}
+        missionComplete={missionComplete}
+        // the What If Lab opens with the existing decision history (only when this session's mission is finished)
+        onOpenLab={
+          missionComplete
+            ? () => {
+                setLessons(false);
+                setScreen("lab");
+              }
+            : undefined
+        }
+      />
+    );
+  }
   if (screen === "splash")
     return (
       <Splash
@@ -180,6 +203,7 @@ function GameInner() {
           setScreen("briefing");
         }}
         onScience={() => setScience(true)}
+        onLessons={() => setLessons(true)}
       />
     );
   if (screen === "intro")
@@ -262,7 +286,7 @@ function GameInner() {
       <>
         {topBar}
         <Scene id="report">
-          <ReportScreen ending={ending} state={final.state} records={final.records} lab={lab} onScience={() => setScience(true)} onRestart={restart} />
+          <ReportScreen ending={ending} state={final.state} records={final.records} lab={lab} onScience={() => setScience(true)} onLessons={() => setLessons(true)} onRestart={restart} />
         </Scene>
       </>
     );

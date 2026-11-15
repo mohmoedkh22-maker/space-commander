@@ -36,6 +36,27 @@ simplifications. Missing data falls back to the labelled LOLA average. Nothing i
 
 Details: [docs/nasa-data-sources.md](docs/nasa-data-sources.md) · [docs/solar-energy-model.md](docs/solar-energy-model.md).
 
+## SUHAIL's NASA science lessons
+
+From the **start menu → 🔭 SUHAIL's Science Lessons** (and from the Commander Report at the end of a mission), the child
+can take three short guided lessons built on **real NASA records from May 2024**:
+
+1. **The solar particle alert:** a NASA DONKI detection by GOES. *Where was it detected?*
+2. **Above the Moon or on it?:** LRO/CRaTER radiation in lunar **orbit**. *Orbit is not the surface; a detector is not a person.*
+3. **They happened together; did one cause the other?:** CRaTER, BioSentinel and the SEP events. *Correlation, not causation.*
+
+Each lesson follows the same steps:
+- SUHAIL introduces it.
+- A child-friendly explanation follows, with the **NASA source**: dataset, observation date, record ids and where the
+  measurement was taken.
+- A clear **Historical NASA record / Simulated** label marks what is real data.
+- A challenge with 2–3 choices gets SUHAIL's feedback.
+- A link to the **What If Lab** compares ideas qualitatively; it never changes numbers.
+
+An optional **Science archive** lists all 27 scenarios. Lessons never change resources, decisions, the day, the ending or the
+saved mission; their own progress is saved separately on the device.
+Details: [docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md](docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md#in-the-game-wp065).
+
 ## Run it
 
 ```bash
@@ -75,7 +96,7 @@ No backend, no accounts. The game needs no API keys (only the optional DONKI syn
 ```
 src/lib/nasa/        NASA data adapter + solar energy model (pure TS); donki/, radlab/, scenarios/ (offline data + scenario engine)
 src/lib/game/        simulation engine, decisions, What If Lab logic, tests
-src/components/      UI: HUD, lunar base (SVG), SUHAIL, screens
+src/components/      UI: HUD, lunar base (SVG), SUHAIL, screens (incl. screens/ScienceLessons.tsx)
 src/data/nasa/       versioned extracted NASA datasets (JSON)
 data/svs4930/        raw per-frame luminance from NASA SVS 4930 (CSV, reproducible)
 scripts/             reproducible NASA data extraction
