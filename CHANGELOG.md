@@ -2,6 +2,18 @@
 
 **Live:** https://space-commander-theta.vercel.app
 
+## V6 — 2026-11-15 · Complete Mission Experience (tag `V6`)
+
+### Added
+- One connected journey: Start → cinematic (first visit) → Mission Briefing → Lunar Base → 3 chapters (Mission Control,
+  Challenge, Consequences, Transition; chapter 3 is the Emergency Sequence) → Outcome → What If Lab → Commander Report
+- Lunar base visual states driven by the game state: Normal, Warning, Critical, Recovery, Mission complete
+- State-based reports from all four crew members, and new SUHAIL lines for recovery, sheltering and chapter endings
+- Chapter tracker and base-status chip in the HUD. Gentle scene transitions (off with Reduce Motion)
+- Outcome screen shows all three outcome categories. The Commander Report adds outcome reasons, resource changes, decision
+  consequences and the science concept behind each decision
+- 97 automated tests, including 3 end-to-end journeys that click through the real game (EN and AR, one per outcome)
+
 ## V5 — 2026-11-15 · What If Lab (tag `V5`)
 
 ### Added

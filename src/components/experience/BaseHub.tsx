@@ -20,6 +20,7 @@ import { Portrait } from "../Portrait";
 import { useSettings } from "../settings";
 import { Button } from "../ui";
 import { SpeakerAvatar, speakerName } from "./ScriptDialogue";
+import { BaseFrame } from "./Journey";
 
 type InspectId = FacilityInspection["id"];
 const LEVEL = { ok: "#43d9a3", warn: "#ffad4d", crit: "#ff6b6b" } as const;
@@ -187,7 +188,11 @@ export function BaseHub({
       <header className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <div>
           <p className="font-display text-sm font-bold tracking-[0.2em] text-holo">{tx(MISSION_INTROS[mission].kicker)}</p>
-          <h1 className="font-display text-3xl font-bold sm:text-4xl">{tx(t("استكشف القاعدة وحقّق", "Explore the base and investigate"))}</h1>
+          <h1 className="font-display text-3xl font-bold sm:text-4xl">
+            {mission === 3
+              ? tx(t("حالة طوارئ: احمِ الطاقم أولًا", "Emergency: protect the crew first"))
+              : tx(t("مركز التحكم: استكشف القاعدة وحقّق", "Mission Control: explore and investigate"))}
+          </h1>
         </div>
         <p className="max-w-md text-sm text-moon">🎯 {tx(MISSION_INTROS[mission].objective)}</p>
       </header>
@@ -196,7 +201,7 @@ export function BaseHub({
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <div className="flex flex-col gap-3">
-          <div className="panel !p-2" style={{ borderColor: "#4fe5ff55" }}>
+          <BaseFrame state={s}>
             <LunarBase
               status={facilityStatus(s)}
               onSelect={select}
@@ -205,7 +210,7 @@ export function BaseHub({
               alert={events[0]?.facility ?? null}
               energyPct={(s.resources.energy / BATTERY_CAP_KWH) * 100}
             />
-          </div>
+          </BaseFrame>
           <nav aria-label={tx(t("مرافق القاعدة", "Base facilities"))}>
             <ul className="grid grid-cols-2 gap-2 sm:grid-cols-5">
               {INSPECTION_ORDER.map((id) => {

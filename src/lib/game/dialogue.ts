@@ -8,7 +8,7 @@ import type { DecisionId, GameState, T } from "./types";
 
 const t = (ar: string, en: string): T => ({ ar, en });
 
-export type DialogueMoment = "mission-1" | "mission-2-alert" | "mission-2" | "mission-3-alert" | "mission-3" | "after-decision";
+export type DialogueMoment = "mission-1" | "mission-2-alert" | "mission-2" | "mission-3-alert" | "mission-3" | "after-decision" | "chapter-end";
 
 export interface DialogueRule {
   id: string;
@@ -53,8 +53,28 @@ export const DIALOGUE_RULES: DialogueRule[] = [
     ),
   },
   {
+    id: "CREW_SHELTERED",
+    moments: ["chapter-end"],
+    priority: 95,
+    when: (s) => s.flags.storm && allSafetyChecksDone(s),
+    text: t(
+      "الطاقم محمي داخل المأوى. السلامة أولًا كانت الترتيب الصحيح — لنرَ الآن كيف صمدت مواردنا.",
+      "The crew is protected inside the shelter. Safety first was the right order — now let's see how our resources held up.",
+    ),
+  },
+  {
+    id: "RECOVERY_WATER",
+    moments: ["after-decision", "chapter-end"],
+    priority: 85,
+    when: (s) => s.facilities.waterRecycling === "repaired",
+    text: t(
+      "المدوّر يعمل من جديد — هذا ما يسميه المهندسون «تعافيًا». إصلاح المشكلة مبكرًا يحمي القاعدة كلها.",
+      "The recycler works again — engineers call that a recovery. Fixing a problem early protects the whole base.",
+    ),
+  },
+  {
     id: "LOW_ENERGY",
-    moments: ["mission-1", "mission-2-alert", "mission-2", "mission-3", "after-decision"],
+    moments: ["mission-1", "mission-2-alert", "mission-2", "mission-3", "after-decision", "chapter-end"],
     priority: 80,
     when: (s) => s.resources.energy < THRESHOLDS.lowEnergy,
     text: t(
@@ -64,7 +84,7 @@ export const DIALOGUE_RULES: DialogueRule[] = [
   },
   {
     id: "LOW_WATER",
-    moments: ["mission-2-alert", "mission-2", "mission-3", "after-decision"],
+    moments: ["mission-2-alert", "mission-2", "mission-3", "after-decision", "chapter-end"],
     priority: 70,
     when: (s) => s.facilities.waterRecycling === "faulty" || s.resources.water < THRESHOLDS.lowWater,
     text: t(
@@ -74,7 +94,7 @@ export const DIALOGUE_RULES: DialogueRule[] = [
   },
   {
     id: "LOW_GREENHOUSE",
-    moments: ["mission-2-alert", "mission-2", "mission-3", "after-decision"],
+    moments: ["mission-2-alert", "mission-2", "mission-3", "after-decision", "chapter-end"],
     priority: 60,
     when: (s) => s.facilities.greenhouse !== "thriving",
     text: t(
@@ -84,7 +104,7 @@ export const DIALOGUE_RULES: DialogueRule[] = [
   },
   {
     id: "GOOD_ENERGY",
-    moments: ["mission-2-alert", "mission-2", "mission-3", "after-decision"],
+    moments: ["mission-2-alert", "mission-2", "mission-3", "after-decision", "chapter-end"],
     priority: 50,
     when: (s) => s.resources.energy >= THRESHOLDS.goodEnergy,
     text: t(

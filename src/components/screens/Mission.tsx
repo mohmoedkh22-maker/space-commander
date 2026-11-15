@@ -13,6 +13,11 @@ import { LunarBase, facilityStatus } from "../LunarBase";
 import { useSettings } from "../settings";
 import { SuhailSays, type Mood } from "../Suhail";
 import { Button, CrewSays, Delta, Panel, ScreenTitle } from "../ui";
+import { BaseFrame, CrewReports } from "../experience/Journey";
+import { BATTERY_CAP_KWH } from "@/lib/game/config";
+
+/** A fixed story line followed by SUHAIL's state-based line (if any). */
+const withContext = (base: T, extra?: T): T => (extra ? { ar: `${base.ar} ${extra.ar}`, en: `${base.en} ${extra.en}` } : base);
 
 export const MISSION_NAMES: Record<number, T> = {
   1: t("المهمة 01 — الشمس التي تختفي", "Mission 01 — The Vanishing Sun"),
@@ -160,14 +165,17 @@ export function DayScreen({ day, before, after, onNext }: { day: number; before:
     <main className="mx-auto max-w-5xl px-4 py-6">
       <ScreenTitle kicker={`${tx(UI.day)} ${day} / 7`} title={tx(info.title)} />
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel className="!p-2">
-          <LunarBase status={facilityStatus(after)} storm={after.flags.storm} />
-        </Panel>
+        <div className="flex flex-col gap-4">
+          <BaseFrame state={after}>
+            <LunarBase status={facilityStatus(after)} storm={after.flags.storm} energyPct={(after.resources.energy / BATTERY_CAP_KWH) * 100} />
+          </BaseFrame>
+          {day > 1 && <CrewReports state={after} />}
+        </div>
         <div className="flex flex-col gap-4">
           {log && <DayResultCard log={log} />}
           {day > 1 && <DeltaTable before={before} after={after} />}
           {log && day > 1 && <WhyPanel items={explainDay(log, before, after)} />}
-          <SuhailSays mood={info.mood} text={info.suhail} />
+          <SuhailSays mood={info.mood} text={withContext(info.suhail, day > 1 ? suhailLines(after, "after-decision", 1)[0]?.text : undefined)} />
           <Button onClick={onNext} autoFocus>
             {tx(UI.continue)}
           </Button>

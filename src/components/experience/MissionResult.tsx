@@ -12,6 +12,8 @@ import { useSettings } from "../settings";
 import { SuhailBot } from "../Suhail";
 import { Button } from "../ui";
 import { useCountUp } from "./CountUp";
+import { BaseFrame, CrewReports } from "./Journey";
+import { suhailLines } from "@/lib/game/dialogue";
 
 const LEVEL = { ok: "#43d9a3", warn: "#ffad4d", crit: "#ff6b6b" } as const;
 
@@ -60,9 +62,9 @@ export function MissionResult({ mission, choices, onContinue }: { mission: Missi
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,440px)_1fr]">
         <div className="flex flex-col gap-3">
-          <div className="panel !p-2">
+          <BaseFrame state={s}>
             <LunarBase status={facilityStatus(s)} storm={s.flags.storm} energyPct={(s.resources.energy / BATTERY_CAP_KWH) * 100} />
-          </div>
+          </BaseFrame>
           <ul className="grid grid-cols-2 gap-2 text-sm">
             {INSPECTION_ORDER.map((id) => {
               const c = INSPECTIONS[id].condition(s);
@@ -131,10 +133,17 @@ export function MissionResult({ mission, choices, onContinue }: { mission: Missi
             </section>
           )}
 
+          <CrewReports state={s} title={t("الطاقم يرفع تقاريره", "The crew reports in")} />
+
           <div className="flex items-start gap-3">
             <SuhailBot mood={res.outlook === "fewer-options" ? "thinking" : "happy"} size={84} />
             <p className="panel flex-1 px-4 py-3 text-lg leading-relaxed" style={{ borderColor: "#4fe5ffaa" }}>
               <b className="text-holo">{tx(t("سهيل:", "SUHAIL:"))}</b> {tx(res.closing)}
+              {suhailLines(s, "chapter-end", 1).map((l) => (
+                <span key={l.id} className="mt-2 block text-base text-lunar/90">
+                  {tx(l.text)}
+                </span>
+              ))}
             </p>
           </div>
 

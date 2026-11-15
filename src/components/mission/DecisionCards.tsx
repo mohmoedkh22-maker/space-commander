@@ -7,6 +7,7 @@ import { optionCost } from "@/lib/game/experience";
 import { explainFacilities } from "@/lib/game/consequences";
 import { BATTERY_CAP_KWH } from "@/lib/game/config";
 import { LunarBase, facilityStatus } from "../LunarBase";
+import { BaseConditionChip } from "../experience/Journey";
 import { useCountUp } from "../experience/CountUp";
 import type { DecisionId, DecisionRecord, GameState, T } from "@/lib/game/types";
 import { CREW, UI, t } from "@/lib/i18n";
@@ -258,6 +259,9 @@ export function ConsequenceScreen({ record, after, onNext }: { record: DecisionR
           <div className="panel relative !p-2" style={{ borderColor: live ? "#43d9a3aa" : "#4fe5ff55" }}>
             <span className="absolute start-3 top-3 z-10 rounded-full bg-space/80 px-3 py-1 text-xs font-bold" aria-live="polite">
               {live ? `● ${tx(t("القاعدة الآن", "Base now"))}` : `◌ ${tx(t("قبل قرارك", "Before your decision"))}`}
+            </span>
+            <span className="absolute end-3 top-3 z-10">
+              <BaseConditionChip state={shown} />
             </span>
             <LunarBase status={facilityStatus(shown)} storm={shown.flags.storm} energyPct={(shown.resources.energy / BATTERY_CAP_KWH) * 100} />
           </div>

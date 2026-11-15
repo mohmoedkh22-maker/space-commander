@@ -1,5 +1,47 @@
 # progress.md
 
+## 2026-11-15 · V0.7 (prompt label): Complete Mission Experience
+Comes after the V5 release. The game version number has not been changed. The simulation logic was not replaced.
+
+**One journey, start to finish:**
+Start Menu → cinematic (first visit only) → **Mission Briefing** → **Lunar Base** tour → for each of the 3 chapters:
+mission intro → **Mission Control** (inspect, find clues) → **Mission Challenge** (decision) → **Decision Consequences** → days →
+**Mission Transition** (debrief + next intro). Chapter 3 is the **Emergency Sequence**: storm intro, then the hub becomes
+"Emergency: protect the crew first" with the 4 mandatory safety steps. Then **Mission Outcome** → **What If Lab** → **Commander Report**.
+**About the Science** is reachable from the toolbar at any time.
+- Previously Start skipped the briefing and the base tour (they were only in the menu). Now they are part of the path
+
+**Done**
+- `lib/game/journey.ts` (pure):
+  - `JOURNEY` (the 12 scenes) and `CHAPTERS` (3 chapters over 7 days)
+  - `crewReports(state)`: Adam (energy, quotes the real NASA light of the last day), Layan (life support and water), Mira (greenhouse),
+    Rashid (safety), each with level ok / warning / critical / recovery
+  - `baseCondition(state)`: Normal / Warning / Critical / Recovery / Mission complete, from the crew reports and active events.
+    A critical event drops to Warning once the 4 safety steps are done
+  - `conceptsExplored()` for the report
+- SUHAIL: new state-based rules `CREW_SHELTERED` and `RECOVERY_WATER`, and a "chapter-end" moment used in every debrief
+- UI:
+  - The HUD shows the chapter tracker (✓ done chapters) and a base-status chip
+  - The base map is framed in the colour of its state (Mission Control, day screens, debriefs, outcome); the consequence screen shows the chip
+  - Crew reports appear on day screens, debriefs and the outcome screen. The outcome screen's fixed crew lines were replaced
+  - Day screens add SUHAIL's contextual line
+  - Gentle scene fade between major scenes, turned off by Reduce Motion
+- Outcome: the three categories are shown together, with yours highlighted
+- Commander Report: final outcome with reasons, resources start → end with change, the 3 decisions with their consequence,
+  and the science concept behind each decision
+- Audio and Reduce Motion stay in the toolbar/settings on every screen
+- Tests: **97 passing**
+  - `journey.test.ts` (13): scenes, chapters, the base states along a real path, crew reactions, SUHAIL lines, all 27 paths finishing with
+    one of the 3 outcomes and opening the lab
+  - `Game.e2e.test.tsx` (3): renders the real game in jsdom and clicks through the whole journey: English with the first-visit cinematic
+    → Mission Accomplished; Arabic RTL → Safe but Limited; English → Mission Interrupted. Each goes through the What If Lab to the report
+- tsc, eslint and build pass. Browser check: chapter-3 emergency in AR and EN (critical → warning after the safety steps), no horizontal
+  scroll at 375 px on that screen
+
+**Not done / limits**
+- The browser check of the outcome and report screens at 375 px did not finish (the pane was hidden). Their content is covered by the e2e test
+- New dev dependencies for the tests: jsdom, @testing-library/react, @testing-library/dom
+
 ## 2026-11-15 · V0.6 (prompt label): What If Lab
 Comes after the V4 release. The game version number has not been changed.
 

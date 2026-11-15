@@ -19,6 +19,7 @@ import { ConsequenceScreen, DecisionScreen } from "./mission/DecisionCards";
 import { OutcomeScreen, ReportScreen } from "./screens/Outcome";
 import { ScienceScreen } from "./screens/Science";
 import { WhatIfLab, type LabResult } from "./screens/WhatIfLab";
+import { Scene } from "./experience/Journey";
 
 type Screen = "splash" | "intro" | "briefing" | "tour" | "play" | "outcome" | "lab" | "report";
 
@@ -107,7 +108,8 @@ function GameInner() {
           setStepIndex(0);
           setConsequence(null);
           setLab(null);
-          setScreen(introDone ? "play" : "intro");
+          // V0.7 journey: (cinematic, first time only) → Mission Briefing → Lunar Base → Mission 01
+          setScreen(introDone ? "briefing" : "intro");
         }}
         resumeDay={saved && saved.stepIndex > 0 ? savedDay : undefined}
         onResume={() => {
@@ -138,18 +140,35 @@ function GameInner() {
       <CinematicIntro
         onFinish={() => {
           set({ introDone: true });
-          // Day 1 was just shown in the cinematic, so open on the first decision.
+          // Day 1 was just shown in the cinematic, so the mission opens on the first decision.
           if (stepIndex === 0) setStepIndex(1);
-          setScreen("play");
+          setScreen("briefing");
         }}
         onSkip={() => {
           set({ introDone: true });
-          setScreen("play");
+          setScreen("briefing");
         }}
       />
     );
-  if (screen === "briefing") return <MissionBriefing onDone={() => setScreen("tour")} />;
-  if (screen === "tour") return <LunarBaseScreen onDone={() => setScreen("play")} onScience={() => setScience(true)} />;
+  if (screen === "briefing")
+    return (
+      <Scene id="briefing">
+        <MissionBriefing onDone={() => setScreen("tour")} />
+      </Scene>
+    );
+  if (screen === "tour")
+    return (
+      <Scene id="tour">
+        <LunarBaseScreen
+          onDone={() => {
+            // Day 1 ("systems online") is the arrival; the first challenge starts on Day 2.
+            if (stepIndex === 0) setStepIndex(1);
+            setScreen("play");
+          }}
+          onScience={() => setScience(true)}
+        />
+      </Scene>
+    );
 
   const ending = computeEnding(final.state);
   if (screen === "outcome" && !seen.has("result-3")) {
@@ -164,7 +183,9 @@ function GameInner() {
     return (
       <>
         <MissionHUD state={final.state} onScience={() => setScience(true)} />
-        <OutcomeScreen ending={ending} state={final.state} onLab={() => setScreen("lab")} />
+        <Scene id="outcome">
+          <OutcomeScreen ending={ending} state={final.state} onLab={() => setScreen("lab")} />
+        </Scene>
       </>
     );
   }
@@ -194,7 +215,9 @@ function GameInner() {
     return (
       <>
         {topBar}
-        <ReportScreen ending={ending} state={final.state} records={final.records} lab={lab} onScience={() => setScience(true)} onRestart={restart} />
+        <Scene id="report">
+          <ReportScreen ending={ending} state={final.state} records={final.records} lab={lab} onScience={() => setScience(true)} onRestart={restart} />
+        </Scene>
       </>
     );
   }
@@ -287,7 +310,7 @@ function GameInner() {
   return (
     <>
       <MissionHUD state={hudState} onScience={() => setScience(true)} />
-      {body}
+      <Scene id={consequence ? `consequence-${consequence}` : `${step}-${seen.size}`}>{body}</Scene>
     </>
   );
 }
