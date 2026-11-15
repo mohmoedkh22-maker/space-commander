@@ -128,6 +128,7 @@ never calls these APIs. Each is a separate dataset with its own documentation.
 |---|---|---|---|
 | Space-weather events (CME, SEP; FLR unavailable) | NASA DONKI (api.nasa.gov) | `public/data/donki/` | `docs/nasa/DONKI-DATA.md` |
 | Radiation measurements: LRO/CRaTER-D1D2 (**lunar orbit**) and BioSentinel/BPD (**heliocentric, 1 AU**) | NASA OSDR RadLab | `public/data/radlab/` | `docs/nasa/RADLAB-DATA.md` |
+| Educational scenarios (27 scenarios + 3 SUHAIL lessons) **derived** from the two datasets above, never mixing them | generated offline by `npm run build:scenarios` | `public/data/scenarios/scenarios.json` | `docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md` |
 
 The RadLab values are detector absorbed-dose rates in orbit. They are **not** lunar-surface values and **not** biological doses. A temporal link
 with DONKI events would be a correlation, not causation.

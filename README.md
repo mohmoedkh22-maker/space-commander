@@ -56,15 +56,24 @@ python -I scripts/build_svs_dataset.py
 python -I scripts/extract_illumination.py src/data/nasa/lunar-illumination.json
 ```
 
+Offline space-weather and radiation data, plus the educational scenarios built from it (not used by gameplay yet):
+
+```bash
+npm run sync:donki       # NASA DONKI events -> public/data/donki/   (optional NASA_API_KEY in .env.local)
+npm run sync:radlab      # NASA OSDR RadLab (LRO/CRaTER, BioSentinel) -> public/data/radlab/
+npm run build:scenarios  # offline, deterministic -> public/data/scenarios/scenarios.json
+```
+See [docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md](docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md).
+
 ## Tech
 
 Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Vitest · Python/rasterio for data extraction.
-No backend, no accounts, no API keys.
+No backend, no accounts. The game needs no API keys (only the optional DONKI sync uses one, from a git-ignored `.env.local`).
 
 ## Project structure
 
 ```
-src/lib/nasa/        NASA data adapter + solar energy model (pure TS)
+src/lib/nasa/        NASA data adapter + solar energy model (pure TS); donki/, radlab/, scenarios/ (offline data + scenario engine)
 src/lib/game/        simulation engine, decisions, What If Lab logic, tests
 src/components/      UI: HUD, lunar base (SVG), SUHAIL, screens
 src/data/nasa/       versioned extracted NASA datasets (JSON)

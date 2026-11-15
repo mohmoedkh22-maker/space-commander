@@ -1,5 +1,22 @@
 # progress.md
 
+## 2026-11-15 · WP06.4: Scientific Scenario Engine
+Educational data layer only. **Gameplay, the simulation engine, resources, decision mechanics, the What If engine, SUHAIL's design and the UI are
+unchanged**; nothing in the game reads the scenarios yet. Details: `docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md`.
+
+**Done**
+- `src/lib/nasa/scenarios/`: types, DONKI scenarios (CME/SEP/FLR), RadLab scenarios (CRaTER lunar orbit, BioSentinel deep space),
+  three SUHAIL lessons (AR/EN), deterministic `generateScenarios()` + scientific-rule validator
+- `scripts/nasa/build-scenarios.ts` + `npm run build:scenarios` (offline; writes only if every rule passes)
+- `public/data/scenarios/scenarios.json`: **27 scenarios** (SEP 14 · CME 8 · FLR 1 · lunar orbit 2 · deep space 2) + **3 lessons**, built on **78 distinct NASA records**
+- What If hooks: qualitative, linked to `d3-emergency`, `resourceEffects: null` (What If engine untouched)
+- Tests: **34 new** in `src/lib/nasa/scenarios/scenarios.test.ts`
+- Docs: new `docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md`; `docs/nasa-data-sources.md`, `README.md` updated
+
+**Open points**
+- FLR scenario is reference-only (NASA FLR endpoint HTTP 404)
+- Using the scenarios in the UI / What If Lab is a separate, future stage
+
 ## 2026-11-15 · WP06.3: NASA OSDR RadLab offline integration
 Data stage only. **Gameplay, the simulation engine, resource calculations and UI are unchanged**; nothing reads the RadLab files yet.
 Not committed, pushed or deployed. Details: `docs/nasa/RADLAB-DATA.md`.
