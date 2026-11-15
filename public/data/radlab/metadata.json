@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "radlab-v1",
+  "source": {
+    "name": "NASA OSDR RadLab",
+    "provider": "NASA Open Science Data Repository (OSDR), NASA Ames Research Center",
+    "api": "https://visualization.osdr.nasa.gov/radlab/api/",
+    "documentation": "https://visualization.osdr.nasa.gov/radlab/gui/data-api/",
+    "documentationArchive": "http://web.archive.org/web/20240522074550/https://visualization.osdr.nasa.gov/radlab/gui/data-api/",
+    "requestSyntax": "GET key-value syntax: instrument_id=<id>&timestamp>=<start>&timestamp<<end+1 day>&<fields>&format=json (pandas 'split' JSON)",
+    "authentication": "none (public API, no key)"
+  },
+  "isLiveData": false,
+  "notice": "Historical NASA RadLab measurements cached for offline use (not live). CRaTER-D1D2 = lunar orbit (not the lunar surface); BPD = heliocentric orbit at 1 AU. Absorbed dose in the detector, not a biological dose.",
+  "retrievedAt": "2026-11-15T10:52:51.717Z",
+  "requestedDateRange": {
+    "startDate": "2024-05-01",
+    "endDate": "2024-05-31"
+  },
+  "timestampConvention": {
+    "asReturned": "timestamp: exactly as returned by RadLab, e.g. 2024-05-10T00:59:58 (no timezone designator)",
+    "derived": "timestampUtcAssumed: the same value read as UTC",
+    "timezone": "UNCONFIRMED. RadLab does not state the timezone; UTC is assumed for the derived field only."
+  },
+  "units": {
+    "absorbed_dose_rate": {
+      "unit": "μGy/hour",
+      "meaning": "Absorbed radiation dose rate as reported by the detector (in the detector's own material, which the API does not state)",
+      "source": "http://web.archive.org/web/20240522074550/https://visualization.osdr.nasa.gov/radlab/gui/data-api/"
+    },
+    "dose_equivalent_rate": {
+      "unit": "μSv/hour",
+      "meaning": "Dose equivalent rate, only where the instrument itself reports it. Never derived from absorbed dose here",
+      "source": "http://web.archive.org/web/20240522074550/https://visualization.osdr.nasa.gov/radlab/gui/data-api/"
+    },
+    "flux": {
+      "unit": "cm^-2 sr^-1 s^-1",
+      "meaning": "Particle flux, only where the instrument reports it",
+      "source": "http://web.archive.org/web/20240522074550/https://visualization.osdr.nasa.gov/radlab/gui/data-api/"
+    }
+  },
+  "detectorMaterial": {
+    "CRaTER-D1D2": {
+      "value": null,
+      "status": "unknown: not stated by the RadLab API; RadLab knowledgebase unavailable (HTTP 500) at retrieval"
+    },
+    "BPD": {
+      "value": null,
+      "status": "unknown: not stated by the RadLab API; RadLab knowledgebase unavailable (HTTP 500) at retrieval"
+    }
+  },
+  "instruments": {
+    "CRaTER-D1D2": {
+      "instrumentId": "CRaTER-D1D2",
+      "spacecraft": "LRO",
+      "trajectory": "Lunar orbit",
+      "role": "primary",
+      "ok": true,
+      "written": true,
+      "error": null,
+      "requests": [
+        {
+          "url": "https://visualization.osdr.nasa.gov/radlab/api/?instrument_id=CRaTER-D1D2&timestamp%3E=2024-05-01&timestamp%3C2024-05-08&absorbed_dose_rate&dose_equivalent_rate&flux&spacecraft&trajectory&celestial_body&instrument&instrument_family&format=json",
+          "startDate": "2024-05-01",
+          "endDate": "2024-05-07",
+          "httpStatus": 200,
+          "rows": 168,
+          "error": null
+        },
+        {
+          "url": "https://visualization.osdr.nasa.gov/radlab/api/?instrument_id=CRaTER-D1D2&timestamp%3E=2024-05-08&timestamp%3C2024-05-15&absorbed_dose_rate&dose_equivalent_rate&flux&spacecraft&trajectory&celestial_body&instrument&instrument_family&format=json",
+          "startDate": "2024-05-08",
+          "endDate": "2024-05-14",
+          "httpStatus": 200,
+          "rows": 168,
+          "error": null
+        },
+        {
+          "url": "https://visualization.osdr.nasa.gov/radlab/api/?instrument_id=CRaTER-D1D2&timestamp%3E=2024-05-15&timestamp%3C2024-05-22&absorbed_dose_rate&dose_equivalent_rate&flux&spacecraft&trajectory&celestial_body&instrument&instrument_family&format=json",
+          "startDate": "2024-05-15",
+          "endDate": "2024-05-21",
+          "httpStatus": 200,
+          "rows": 168,
+          "error": null
+        },
+        {
+          "url": "https://visualization.osdr.nasa.gov/radlab/api/?instrument_id=CRaTER-D1D2&timestamp%3E=2024-05-22&timestamp%3C2024-05-29&absorbed_dose_rate&dose_equivalent_rate&flux&spacecraft&trajectory&celestial_body&instrument&instrument_family&format=json",
+          "startDate": "2024-05-22",
+          "endDate": "2024-05-28",
+          "httpStatus": 200,
+          "rows": 168,
+          "error": null
+        },
+        {
+          "url": "https://visualization.osdr.nasa.gov/radlab/api/?instrument_id=CRaTER-D1D2&timestamp%3E=2024-05-29&timestamp%3C2024-06-01&absorbed_dose_rate&dose_equivalent_rate&flux&spacecraft&trajectory&celestial_body&instrument&instrument_family&format=json",
+          "startDate": "2024-05-29",
+          "endDate": "2024-05-31",
+          "httpStatus": 200,
+          "rows": 72,
+          "error": null
+        }
+      ],
+      "received": 744,
+      "accepted": 744,
+      "rejected": [],
+      "duplicates": {
+        "identical": 0,
+        "conflicting": []
+      },
+      "firstTimestamp": "2024-05-01T00:59:59",
+      "lastTimestamp": "2024-05-31T23:59:59",
+      "medianCadenceSec": 3600,
+      "fields": {
+        "absorbed_dose_rate": {
+          "nonNull": 744,
+          "nulls": 0,
+          "notReturned": 0,
+          "zeros": 0,
+          "min": 4.564583333333333,
+          "max": 3151.75
+        },
+        "dose_equivalent_rate": {
+          "nonNull": 0,
+          "nulls": 744,
+          "notReturned": 0,
+          "zeros": 0,
+          "min": null,
+          "max": null
+        },
+        "flux": {
+          "nonNull": 0,
+          "nulls": 744,
+          "notReturned": 0,
+          "zeros": 0,
+          "min": null,
+          "max": null
+        }
+      },
+      "files": {
+        "records": "public/data/radlab/crater-d1d2.json",
+        "raw": "public/data/radlab/raw/crater-d1d2.raw.json"
+      },
+      "keptPrevious": null
+    },
+    "BPD": {
+      "instrumentId": "BPD",
+      "spacecraft": "BioSentinel",
+      "trajectory": "Heliocentric orbit at 1 AU",
+      "role": "secondary",
+      "ok": true,
+      "written": true,
+      "error": null,
+      "requests": [
+        {
+          "url": "https://visualization.osdr.nasa.gov/radlab/api/?instrument_id=BPD&timestamp%3E=2024-05-01&timestamp%3C2024-05-08&absorbed_dose_rate&dose_equivalent_rate&flux&spacecraft&trajectory&celestial_body&instrument&instrument_family&format=json",
+          "startDate": "2024-05-01",
+          "endDate": "2024-05-07",
+          "httpStatus": 200,
+          "rows": 10010,
+          "error": null
+        },
+        {
+          "url": "https://visualization.osdr.nasa.gov/radlab/api/?instrument_id=BPD&timestamp%3E=2024-05-08&timestamp%3C2024-05-15&absorbed_dose_rate&dose_equivalent_rate&flux&spacecraft&trajectory&celestial_body&instrument&instrument_family&format=json",
+          "startDate": "2024-05-08",
+          "endDate": "2024-05-14",
+          "httpStatus": 200,
+          "rows": 9991,
+          "error": null
+        },
+        {
+          "url": "https://visualization.osdr.nasa.gov/radlab/api/?instrument_id=BPD&timestamp%3E=2024-05-15&timestamp%3C2024-05-22&absorbed_dose_rate&dose_equivalent_rate&flux&spacecraft&trajectory&celestial_body&instrument&instrument_family&format=json",
+          "startDate": "2024-05-15",
+          "endDate": "2024-05-21",
+          "httpStatus": 200,
+          "rows": 9944,
+          "error": null
+        },
+        {
+          "url": "https://visualization.osdr.nasa.gov/radlab/api/?instrument_id=BPD&timestamp%3E=2024-05-22&timestamp%3C2024-05-29&absorbed_dose_rate&dose_equivalent_rate&flux&spacecraft&trajectory&celestial_body&instrument&instrument_family&format=json",
+          "startDate": "2024-05-22",
+          "endDate": "2024-05-28",
+          "httpStatus": 200,
+          "rows": 9933,
+          "error": null
+        },
+        {
+          "url": "https://visualization.osdr.nasa.gov/radlab/api/?instrument_id=BPD&timestamp%3E=2024-05-29&timestamp%3C2024-06-01&absorbed_dose_rate&dose_equivalent_rate&flux&spacecraft&trajectory&celestial_body&instrument&instrument_family&format=json",
+          "startDate": "2024-05-29",
+          "endDate": "2024-05-31",
+          "httpStatus": 200,
+          "rows": 4252,
+          "error": null
+        }
+      ],
+      "received": 44130,
+      "accepted": 44130,
+      "rejected": [],
+      "duplicates": {
+        "identical": 0,
+        "conflicting": []
+      },
+      "firstTimestamp": "2024-05-01T00:00:00",
+      "lastTimestamp": "2024-05-31T23:59:00",
+      "medianCadenceSec": 60,
+      "fields": {
+        "absorbed_dose_rate": {
+          "nonNull": 44130,
+          "nulls": 0,
+          "notReturned": 0,
+          "zeros": 131,
+          "min": 0,
+          "max": 652.668
+        },
+        "dose_equivalent_rate": {
+          "nonNull": 0,
+          "nulls": 44130,
+          "notReturned": 0,
+          "zeros": 0,
+          "min": null,
+          "max": null
+        },
+        "flux": {
+          "nonNull": 0,
+          "nulls": 44130,
+          "notReturned": 0,
+          "zeros": 0,
+          "min": null,
+          "max": null
+        }
+      },
+      "files": {
+        "records": "public/data/radlab/bpd.json",
+        "raw": "public/data/radlab/raw/bpd.raw.json"
+      },
+      "keptPrevious": null
+    }
+  },
+  "validation": {
+    "status": "valid",
+    "rule": "valid = every instrument retrieved with no rejected rows and no conflicting duplicates; partial = some failure or rejection; failed = nothing retrieved"
+  },
+  "scientificLimitations": [
+    "CRaTER-D1D2 data are measurements in LUNAR ORBIT aboard LRO. They are not lunar-surface measurements and are not measurements at the fictional SELENE-1 base.",
+    "BPD data are measurements aboard BioSentinel in heliocentric orbit at about 1 AU. They are not measurements near the Moon.",
+    "absorbed_dose_rate is the absorbed dose rate reported by each detector. It is not an astronaut, tissue or biological dose, and no conversion is applied.",
+    "No equivalent dose is derived from absorbed dose. dose_equivalent_rate is stored only where RadLab returns it (null otherwise).",
+    "Detector materials are not stated by the RadLab API, and the RadLab knowledgebase was unavailable (HTTP 500) at retrieval. They are recorded as unknown.",
+    "RadLab timestamps carry no timezone designator. They are kept exactly as returned; timestampUtcAssumed reads them as UTC, which is an assumption.",
+    "Units come from the RadLab Data API documentation (archived copy, 2024-05-22). The API responses themselves carry no units.",
+    "A reading of exactly 0 is flagged (zero_value). It may be a real low reading, a data dropout or a processing artefact, and is never interpreted as zero radiation.",
+    "Null values are preserved as null. Missing values are never interpolated or filled.",
+    "Values are historical and cached. They must never be presented as current or live space weather.",
+    "Any comparison with NASA DONKI events is a temporal correlation only. No causation is claimed, and RadLab and DONKI records are stored separately."
+  ],
+  "relationToDonki": "Separate source dataset (public/data/donki/). Raw records are never combined. Any future temporal association must be labelled as correlation, not causation."
+}

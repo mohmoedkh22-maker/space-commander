@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "sync:donki": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local scripts/nasa/sync-donki.ts"
+    "sync:donki": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local scripts/nasa/sync-donki.ts",
+    "sync:radlab": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/nasa/sync-radlab.ts"
   },
   "dependencies": {
     "next": "15.5.4",

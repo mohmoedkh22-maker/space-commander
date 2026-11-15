@@ -117,3 +117,17 @@ were not adjusted.
 - This is a long-term average, **not** a daily time series. Since V0.5 the daily values come from Source A.
 - Illumination fraction is not electrical power. See `docs/solar-energy-model.md`.
 - SELENE-1 is fictional. Only its location and the sunlight values come from NASA data.
+
+---
+
+## Offline-only datasets (not used by gameplay)
+These are cached by manual pre-build scripts. The game, the simulation engine and the resource calculations do **not** read them, and the game
+never calls these APIs. Each is a separate dataset with its own documentation.
+
+| Dataset | Source | Files | Documentation |
+|---|---|---|---|
+| Space-weather events (CME, SEP; FLR unavailable) | NASA DONKI (api.nasa.gov) | `public/data/donki/` | `docs/nasa/DONKI-DATA.md` |
+| Radiation measurements: LRO/CRaTER-D1D2 (**lunar orbit**) and BioSentinel/BPD (**heliocentric, 1 AU**) | NASA OSDR RadLab | `public/data/radlab/` | `docs/nasa/RADLAB-DATA.md` |
+
+The RadLab values are detector absorbed-dose rates in orbit. They are **not** lunar-surface values and **not** biological doses. A temporal link
+with DONKI events would be a correlation, not causation.

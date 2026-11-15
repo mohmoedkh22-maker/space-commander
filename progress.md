@@ -1,5 +1,23 @@
 # progress.md
 
+## 2026-11-15 · WP06.3: NASA OSDR RadLab offline integration
+Data stage only. **Gameplay, the simulation engine, resource calculations and UI are unchanged**; nothing reads the RadLab files yet.
+Not committed, pushed or deployed. Details: `docs/nasa/RADLAB-DATA.md`.
+
+**Done**
+- `src/lib/nasa/radlab/radlab.ts` (independent of DONKI): approved sources (CRaTER-D1D2 = LRO lunar orbit, BPD = BioSentinel 1 AU), documented
+  units, safe pandas-split JSON parser, timestamp / ID / provenance / numeric validation, duplicate handling, read-only fetch, metadata
+- `scripts/nasa/sync-radlab.ts` + `npm run sync:radlab` (no key; 7-day chunks; 2 s pause; per-instrument all-or-nothing writes; temp file + rename)
+- Retrieved 2024-05-01 → 2024-05-31: **CRaTER-D1D2 744** records (hourly), **BPD 44,130** records (1 min), 0 rejected, 0 duplicates,
+  validation `valid`. Raw responses preserved in `public/data/radlab/raw/`
+- Tests: **19 new** in `src/lib/nasa/radlab/radlab.test.ts`
+- `docs/nasa/RADLAB-DATA.md`; `docs/nasa-data-sources.md` now lists both offline datasets
+
+**Open points**
+- Detector materials and the timestamp timezone are not stated by RadLab (documentation and knowledgebase answered HTTP 500). Recorded as unknown / assumed.
+- BPD has 131 zero readings (flagged) and 315 short gaps (≤ 5 min, not filled)
+- Dataset size: about 8.6 MB under `public/data/radlab/` (mostly BPD 1-minute data + raw copy)
+
 ## 2026-11-15 · WP06.2 / V6.1: NASA DONKI offline data fetcher
 Data stage only. **Gameplay is unchanged**; the game does not read the DONKI files yet. Nothing pushed or deployed. Details: `docs/nasa/DONKI-DATA.md`.
 
