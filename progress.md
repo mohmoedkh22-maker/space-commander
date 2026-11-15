@@ -1,5 +1,31 @@
 # progress.md
 
+## 2026-11-15 · WP06.6: production deployment of WP06.2–06.5
+**Live:** https://space-commander-theta.vercel.app (Vercel project `raqeeb4/space-commander`; the domain is unchanged).
+
+**Deployment**
+- Deployed from commit `fc72897` (git-clean tree, `npm run build`, `out/` uploaded with the Vercel CLI) as `dpl_3R4AssqGXLkzy7THtc36Vx7ArmMR`.
+  Status Ready, target production, aliased to `space-commander-theta.vercel.app`. Deployment metadata: `githubCommitSha`, `githubRepo`,
+  `githubCommitRef=main`.
+- **Added `vercel.json`** (install `npm ci`, build `npm run build`, output `out/`, no framework preset). Without it, the project's
+  "Other" preset would publish `public/` instead of the game once Git builds are enabled.
+- The Vercel project is **not yet connected to GitHub**: `vercel git connect` returned *"You need to add a Login Connection to your
+  GitHub account first (400)"*. The account owner must connect GitHub in the Vercel dashboard (Account Settings → Authentication →
+  Connect GitHub, then install the Vercel GitHub App for `mohmoedkh22-maker/space-commander`), and then run
+  `vercel git connect https://github.com/mohmoedkh22-maker/space-commander`. Until then, deploys are made with the CLI.
+
+**Verified on the live site**
+- `index.html` and `scenarios.json` are byte-identical to the local build. All 9 data files return HTTP 200, and so do all JS/CSS
+  chunks and the art. A missing page returns 404; `.env.local` and `.vercel` are not served.
+- In Chrome:
+  - the cinematic intro and the start menu (Arabic RTL and English LTR), including the new 🔭 lessons item
+  - all three SUHAIL lessons, with correct NASA attribution (DONKI SEP id + CCMC link, CRaTER 3151.75 μGy/hour, BPD 652.668 μGy/hour)
+    and historical-vs-simulated labels
+  - the archive (27 scenarios: 22 observation, 4 model output, 1 reference)
+  - save/load of a finished mission, and lesson → What If Lab with the unchanged decision history
+- 390 px phone width and desktop: no horizontal overflow.
+- No console errors, no failed requests, and **no requests to NASA APIs** (all data is served from the site).
+
 ## 2026-11-15 · WP06.5: Scientific gameplay integration
 The three SUHAIL lessons are now playable in the game. Resources, decisions, day progression, endings, the What If engine and the
 mission save are unchanged. Details: `docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md` → "In the game".
