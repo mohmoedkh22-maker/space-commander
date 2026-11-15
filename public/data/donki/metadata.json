@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "donki-v1",
+  "source": {
+    "name": "NASA DONKI — Space Weather Database Of Notifications, Knowledge, Information",
+    "provider": "NASA Community Coordinated Modeling Center (CCMC), via api.nasa.gov",
+    "apiBase": "https://api.nasa.gov/DONKI",
+    "endpoints": {
+      "CME": "https://api.nasa.gov/DONKI/CME",
+      "FLR": "https://api.nasa.gov/DONKI/FLR",
+      "SEP": "https://api.nasa.gov/DONKI/SEP"
+    },
+    "documentation": [
+      "https://api.nasa.gov/",
+      "https://ccmc.gsfc.nasa.gov/tools/DONKI/"
+    ]
+  },
+  "isLiveData": false,
+  "notice": "Historical NASA DONKI records downloaded before gameplay. They describe solar events observed from near Earth; they are not live data and not measurements at the fictional SELENE-1 base. No gameplay effect is defined in this version.",
+  "retrievedAt": "2026-11-15T10:11:59.079Z",
+  "requestedDateRange": {
+    "startDate": "2024-05-01",
+    "endDate": "2024-05-31"
+  },
+  "coveredRanges": [
+    {
+      "startDate": "2024-05-01",
+      "endDate": "2024-05-31",
+      "retrievedAt": "2026-11-15T09:36:59.046Z"
+    },
+    {
+      "startDate": "2024-05-01",
+      "endDate": "2024-05-31",
+      "retrievedAt": "2026-11-15T10:11:59.079Z"
+    }
+  ],
+  "supportedEventTypes": [
+    "CME",
+    "FLR",
+    "SEP"
+  ],
+  "counts": {
+    "CME": 144,
+    "FLR": 0,
+    "SEP": 14,
+    "total": 158
+  },
+  "apiKeyType": "NASA_API_KEY",
+  "datasets": {
+    "SEP": {
+      "file": "public/data/donki/sep.json",
+      "endpoint": "https://api.nasa.gov/DONKI/SEP",
+      "retrievedAt": "2026-11-15T10:11:59.079Z",
+      "requestedDateRange": {
+        "startDate": "2024-05-01",
+        "endDate": "2024-05-31"
+      },
+      "count": 14,
+      "missingOptionalFields": {},
+      "basis": {
+        "model": 4,
+        "instrument": 10
+      }
+    }
+  },
+  "validation": {
+    "status": "partial",
+    "perType": {
+      "SEP": {
+        "requestUrl": "https://api.nasa.gov/DONKI/SEP?startDate=2024-05-01&endDate=2024-05-31&api_key=***",
+        "ok": true,
+        "httpStatus": 200,
+        "error": null,
+        "received": 14,
+        "accepted": 14,
+        "duplicatesInResponse": 0,
+        "rejected": []
+      },
+      "CME": {
+        "requestUrl": "https://api.nasa.gov/DONKI/CME?startDate=2024-05-01&endDate=2024-05-31&api_key=***",
+        "ok": true,
+        "httpStatus": 200,
+        "error": null,
+        "received": 144,
+        "accepted": 144,
+        "duplicatesInResponse": 0,
+        "rejected": []
+      },
+      "FLR": {
+        "requestUrl": "https://api.nasa.gov/DONKI/FLR?startDate=2024-05-01&endDate=2024-05-31&api_key=***",
+        "ok": false,
+        "httpStatus": 404,
+        "error": "HTTP 404: {\"timestamp\":\"2026-11-15T09:37:02.133Z\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/DONKI-API/get/FLR/\"}",
+        "received": 0,
+        "accepted": 0,
+        "duplicatesInResponse": 0,
+        "rejected": []
+      }
+    }
+  },
+  "fieldProvenance": {
+    "observed": [
+      "id",
+      "eventType",
+      "eventDate",
+      "sourceLocation",
+      "instruments",
+      "sourceUrl",
+      "observed.*",
+      "rawEvent"
+    ],
+    "derived": [
+      "derived.eventDateUtc"
+    ],
+    "retrieval": [
+      "retrievedAt",
+      "dataQuality"
+    ],
+    "simulationAssumptions": []
+  }
+}

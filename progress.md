@@ -1,5 +1,32 @@
 # progress.md
 
+## 2026-11-15 · WP06.2 / V6.1: NASA DONKI offline data fetcher
+Data stage only. **Gameplay is unchanged**; the game does not read the DONKI files yet. Nothing pushed or deployed. Details: `docs/nasa/DONKI-DATA.md`.
+
+**Done**
+- `src/lib/nasa/donki/donki.ts`: DONKIEvent model (id, eventType, eventDate, sourceLocation, instruments, sourceUrl, retrievedAt, rawEvent,
+  dataQuality + `observed` / `derived`), strict timestamp validation, normalization with no fabricated values, model-vs-instrument
+  `basis`, de-duplication and revision-aware merge, `fetchDonki` (timeout, HTTP / network / JSON errors, empty-body handling, key masking),
+  metadata builder
+- `scripts/nasa/sync-donki.ts` + `npm run sync:donki` (Node's built-in TypeScript; no new dependencies). Configurable range (`--start/--end`,
+  `--days`), `--replace`, `--timeout`; reads `NASA_API_KEY` from the shell or `.env.local` (git-ignored); DEMO_KEY fallback with a warning.
+  A failed type never deletes stored data; if all requests fail, the files are left unchanged
+- Output: `public/data/donki/events.json` (144 events, 651 KB) and `public/data/donki/metadata.json`
+- `.env.example` documents `NASA_API_KEY=` (no value); `tsconfig.json` allows `.ts` import extensions for the script
+- Tests: **19 new** in `src/lib/nasa/donki/donki.test.ts` (all cases in the brief + model-based records + metadata)
+
+**Retrieved (range 2024-05-01 → 2024-05-31, DEMO_KEY)**
+- CME **144** ✓
+- FLR **0**: NASA gateway answered HTTP 404 (`/DONKI-API/get/FLR/`) every time; CCMC's own service was unreachable
+- SEP: **14** in the first run, then lost in a regeneration because of a script bug (`--replace` dropped types that failed). That bug is fixed;
+  the re-download was refused with HTTP 429 (DEMO_KEY: 10 requests/day here)
+- `metadata.json` records all of this (validation `partial`)
+
+**Pending**
+- Re-run with a personal key: put `NASA_API_KEY=…` in `.env.local`, then `npm run sync:donki -- --start=2024-05-01 --end=2024-05-31`.
+  SEP should come back. FLR depends on NASA fixing the 404 (or on adding CCMC's own endpoint as a documented fallback, if wanted)
+- V6.2 (not started, needs approval): use DONKI events in educational scenarios with documented assumptions
+
 ## 2026-11-15 · Cinematic Game Experience: PHASE 7, Quality Assurance
 All seven phases are complete. Nothing pushed or deployed. Full report: `docs/qa-report.md`.
 

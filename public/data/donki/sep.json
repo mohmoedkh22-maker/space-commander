@@ -1,0 +1,957 @@
+{
+ "schemaVersion": 1,
+ "dataVersion": "donki-v1",
+ "eventType": "SEP",
+ "source": "https://api.nasa.gov/DONKI/SEP",
+ "retrievedAt": "2026-11-15T10:11:59.079Z",
+ "requestedDateRange": {
+  "startDate": "2024-05-01",
+  "endDate": "2024-05-31"
+ },
+ "notice": "Historical NASA DONKI records downloaded before gameplay. They describe solar events observed from near Earth; they are not live data and not measurements at the fictional SELENE-1 base. No gameplay effect is defined in this version.",
+ "count": 14,
+ "events": [
+  {
+   "id": "2024-05-09T13:59:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-09T13:59Z",
+   "sourceLocation": null,
+   "instruments": [
+    "MODEL: REleASE:ACE/EPAM 15.8-39.8 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30609/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-09T13:59Z",
+    "linkedEventIds": [
+     "2024-05-09T08:45:00-FLR-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-09T13:59:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-09T13:59:00-SEP-001",
+    "eventTime": "2024-05-09T13:59Z",
+    "instruments": [
+     {
+      "displayName": "MODEL: REleASE:ACE/EPAM 15.8-39.8 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30609/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-09T08:45:00-FLR-001"
+     }
+    ],
+    "sentNotifications": [
+     {
+      "messageID": "20240509-AL-004",
+      "messageIssueTime": "2024-05-09T14:00Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30611/1"
+     }
+    ],
+    "submissionTime": "2024-05-09T13:54Z",
+    "versionId": 1
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [
+     "reported through a model/forecast source only (MODEL: …), not a direct instrument measurement"
+    ],
+    "basis": "model"
+   }
+  },
+  {
+   "id": "2024-05-09T14:25:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-09T14:25Z",
+   "sourceLocation": null,
+   "instruments": [
+    "MODEL: REleASE:SOHO/EPHIN 15.8-39.8 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30610/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-09T14:25Z",
+    "linkedEventIds": [
+     "2024-05-09T08:45:00-FLR-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-09T14:25:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-09T14:25:00-SEP-001",
+    "eventTime": "2024-05-09T14:25Z",
+    "instruments": [
+     {
+      "displayName": "MODEL: REleASE:SOHO/EPHIN 15.8-39.8 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30610/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-09T08:45:00-FLR-001"
+     }
+    ],
+    "sentNotifications": null,
+    "submissionTime": "2024-05-09T14:44Z",
+    "versionId": 2
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [
+     "reported through a model/forecast source only (MODEL: …), not a direct instrument measurement"
+    ],
+    "basis": "model"
+   }
+  },
+  {
+   "id": "2024-05-10T12:59:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-10T12:59Z",
+   "sourceLocation": null,
+   "instruments": [
+    "SOHO: COSTEP 15.8-39.8 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30675/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-10T12:59Z",
+    "linkedEventIds": [
+     "2024-05-09T08:45:00-FLR-001",
+     "2024-05-09T17:23:00-FLR-001",
+     "2024-05-10T06:27:00-FLR-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-10T12:59:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-10T12:59:00-SEP-001",
+    "eventTime": "2024-05-10T12:59Z",
+    "instruments": [
+     {
+      "displayName": "SOHO: COSTEP 15.8-39.8 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30675/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-09T08:45:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-09T17:23:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-10T06:27:00-FLR-001"
+     }
+    ],
+    "sentNotifications": null,
+    "submissionTime": "2024-05-10T13:39Z",
+    "versionId": 1
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [],
+    "basis": "instrument"
+   }
+  },
+  {
+   "id": "2024-05-10T13:02:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-10T13:02Z",
+   "sourceLocation": null,
+   "instruments": [
+    "SOHO: COSTEP 28.2-50.1 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30676/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-10T13:02Z",
+    "linkedEventIds": [
+     "2024-05-09T08:45:00-FLR-001",
+     "2024-05-09T17:23:00-FLR-001",
+     "2024-05-10T06:27:00-FLR-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-10T13:02:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-10T13:02:00-SEP-001",
+    "eventTime": "2024-05-10T13:02Z",
+    "instruments": [
+     {
+      "displayName": "SOHO: COSTEP 28.2-50.1 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30676/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-09T08:45:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-09T17:23:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-10T06:27:00-FLR-001"
+     }
+    ],
+    "sentNotifications": null,
+    "submissionTime": "2024-05-10T13:41Z",
+    "versionId": 1
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [],
+    "basis": "instrument"
+   }
+  },
+  {
+   "id": "2024-05-10T13:35:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-10T13:35Z",
+   "sourceLocation": null,
+   "instruments": [
+    "GOES-P: SEISS >10 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30677/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-10T13:35Z",
+    "linkedEventIds": [
+     "2024-05-08T04:20:00-FLR-001",
+     "2024-05-08T04:37:00-FLR-001",
+     "2024-05-08T05:36:00-CME-001",
+     "2024-05-08T11:26:00-FLR-001",
+     "2024-05-08T12:24:00-CME-001",
+     "2024-05-08T21:08:00-FLR-001",
+     "2024-05-08T22:05:00-FLR-001",
+     "2024-05-08T22:24:00-CME-001",
+     "2024-05-09T08:45:00-FLR-001",
+     "2024-05-09T09:24:00-CME-001",
+     "2024-05-09T17:23:00-FLR-001",
+     "2024-05-09T18:23:00-CME-001",
+     "2024-05-10T06:27:00-FLR-001",
+     "2024-05-10T07:12:00-CME-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-10T13:35:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-10T13:35:00-SEP-001",
+    "eventTime": "2024-05-10T13:35Z",
+    "instruments": [
+     {
+      "displayName": "GOES-P: SEISS >10 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30677/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-08T04:20:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-08T04:37:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-08T05:36:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-08T11:26:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-08T12:24:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-08T21:08:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-08T22:05:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-08T22:24:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-09T08:45:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-09T09:24:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-09T17:23:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-09T18:23:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-10T06:27:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-10T07:12:00-CME-001"
+     }
+    ],
+    "sentNotifications": [
+     {
+      "messageID": "20240510-AL-004",
+      "messageIssueTime": "2024-05-10T13:46Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30678/1"
+     },
+     {
+      "messageID": "20240510-AL-005",
+      "messageIssueTime": "2024-05-10T14:12Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30679/1"
+     }
+    ],
+    "submissionTime": "2024-05-10T13:46Z",
+    "versionId": 1
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [],
+    "basis": "instrument"
+   }
+  },
+  {
+   "id": "2024-05-10T14:50:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-10T14:50Z",
+   "sourceLocation": null,
+   "instruments": [
+    "STEREO A: IMPACT 13-100 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30684/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-10T14:50Z",
+    "linkedEventIds": [
+     "2024-05-08T04:20:00-FLR-001",
+     "2024-05-08T04:37:00-FLR-001",
+     "2024-05-08T11:26:00-FLR-001",
+     "2024-05-08T12:24:00-CME-001",
+     "2024-05-08T21:08:00-FLR-001",
+     "2024-05-08T22:05:00-FLR-001",
+     "2024-05-08T22:24:00-CME-001",
+     "2024-05-09T08:45:00-FLR-001",
+     "2024-05-09T09:24:00-CME-001",
+     "2024-05-09T17:23:00-FLR-001",
+     "2024-05-09T18:23:00-CME-001",
+     "2024-05-10T06:27:00-FLR-001",
+     "2024-05-10T07:12:00-CME-001",
+     "2024-05-10T13:58:00-FLR-001",
+     "2024-05-10T14:00:00-IPS-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-10T14:50:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-10T14:50:00-SEP-001",
+    "eventTime": "2024-05-10T14:50Z",
+    "instruments": [
+     {
+      "displayName": "STEREO A: IMPACT 13-100 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30684/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-08T04:20:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-08T04:37:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-08T11:26:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-08T12:24:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-08T21:08:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-08T22:05:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-08T22:24:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-09T08:45:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-09T09:24:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-09T17:23:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-09T18:23:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-10T06:27:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-10T07:12:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-10T13:58:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-10T14:00:00-IPS-001"
+     }
+    ],
+    "sentNotifications": [
+     {
+      "messageID": "20240510-AL-008",
+      "messageIssueTime": "2024-05-10T15:03Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30685/1"
+     },
+     {
+      "messageID": "20240510-AL-009",
+      "messageIssueTime": "2024-05-10T15:17Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30686/1"
+     }
+    ],
+    "submissionTime": "2024-05-10T15:03Z",
+    "versionId": 1
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [],
+    "basis": "instrument"
+   }
+  },
+  {
+   "id": "2024-05-11T02:10:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-11T02:10Z",
+   "sourceLocation": null,
+   "instruments": [
+    "GOES-P: SEISS >100 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30714/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-11T02:10Z",
+    "linkedEventIds": [
+     "2024-05-11T01:10:00-FLR-001",
+     "2024-05-11T01:36:00-CME-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-11T02:10:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-11T02:10:00-SEP-001",
+    "eventTime": "2024-05-11T02:10Z",
+    "instruments": [
+     {
+      "displayName": "GOES-P: SEISS >100 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30714/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-11T01:10:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-11T01:36:00-CME-001"
+     }
+    ],
+    "sentNotifications": [
+     {
+      "messageID": "20240511-AL-006",
+      "messageIssueTime": "2024-05-11T02:30Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30715/1"
+     },
+     {
+      "messageID": "20240511-AL-007",
+      "messageIssueTime": "2024-05-11T02:46Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30716/1"
+     }
+    ],
+    "submissionTime": "2024-05-11T02:30Z",
+    "versionId": 1
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [],
+    "basis": "instrument"
+   }
+  },
+  {
+   "id": "2024-05-11T04:07:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-11T04:07Z",
+   "sourceLocation": null,
+   "instruments": [
+    "STEREO A: IMPACT 13-100 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30717/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-11T04:07Z",
+    "linkedEventIds": [
+     "2024-05-11T01:10:00-FLR-001",
+     "2024-05-11T01:36:00-CME-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-11T04:07:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-11T04:07:00-SEP-001",
+    "eventTime": "2024-05-11T04:07Z",
+    "instruments": [
+     {
+      "displayName": "STEREO A: IMPACT 13-100 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30717/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-11T01:10:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-11T01:36:00-CME-001"
+     }
+    ],
+    "sentNotifications": [
+     {
+      "messageID": "20240511-AL-008",
+      "messageIssueTime": "2024-05-11T04:13Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30718/1"
+     },
+     {
+      "messageID": "20240511-AL-013",
+      "messageIssueTime": "2024-05-11T15:03Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30728/1"
+     }
+    ],
+    "submissionTime": "2024-05-11T04:13Z",
+    "versionId": 1
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [],
+    "basis": "instrument"
+   }
+  },
+  {
+   "id": "2024-05-13T12:44:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-13T12:44Z",
+   "sourceLocation": null,
+   "instruments": [
+    "STEREO A: IMPACT 13-100 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30811/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-13T12:44Z",
+    "linkedEventIds": [
+     "2024-05-13T08:06:00-FLR-001",
+     "2024-05-13T08:23:00-FLR-001",
+     "2024-05-13T08:47:00-FLR-001",
+     "2024-05-13T09:12:00-CME-001",
+     "2024-05-13T09:36:00-FLR-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-13T12:44:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-13T12:44:00-SEP-001",
+    "eventTime": "2024-05-13T12:44Z",
+    "instruments": [
+     {
+      "displayName": "STEREO A: IMPACT 13-100 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30811/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-13T08:06:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:23:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:47:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T09:12:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-13T09:36:00-FLR-001"
+     }
+    ],
+    "sentNotifications": [
+     {
+      "messageID": "20240513-AL-006",
+      "messageIssueTime": "2024-05-13T12:54Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30812/1"
+     },
+     {
+      "messageID": "20240513-AL-007",
+      "messageIssueTime": "2024-05-13T13:01Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30813/1"
+     }
+    ],
+    "submissionTime": "2024-05-22T16:51Z",
+    "versionId": 3
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [],
+    "basis": "instrument"
+   }
+  },
+  {
+   "id": "2024-05-13T13:10:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-13T13:10Z",
+   "sourceLocation": null,
+   "instruments": [
+    "MODEL: REleASE:SOHO/EPHIN 15.8-39.8 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30807/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-13T13:10Z",
+    "linkedEventIds": [
+     "2024-05-13T08:06:00-FLR-001",
+     "2024-05-13T08:23:00-FLR-001",
+     "2024-05-13T08:47:00-FLR-001",
+     "2024-05-13T09:12:00-CME-001",
+     "2024-05-13T09:36:00-FLR-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-13T13:10:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-13T13:10:00-SEP-001",
+    "eventTime": "2024-05-13T13:10Z",
+    "instruments": [
+     {
+      "displayName": "MODEL: REleASE:SOHO/EPHIN 15.8-39.8 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30807/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-13T08:06:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:23:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:47:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T09:12:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-13T09:36:00-FLR-001"
+     }
+    ],
+    "sentNotifications": [
+     {
+      "messageID": "20240513-AL-005",
+      "messageIssueTime": "2024-05-13T12:45Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30810/1"
+     }
+    ],
+    "submissionTime": "2024-05-13T12:39Z",
+    "versionId": 1
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [
+     "reported through a model/forecast source only (MODEL: …), not a direct instrument measurement"
+    ],
+    "basis": "model"
+   }
+  },
+  {
+   "id": "2024-05-13T14:00:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-13T14:00Z",
+   "sourceLocation": null,
+   "instruments": [
+    "GOES-P: SEISS >10 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30817/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-13T14:00Z",
+    "linkedEventIds": [
+     "2024-05-13T08:06:00-FLR-001",
+     "2024-05-13T08:23:00-FLR-001",
+     "2024-05-13T08:47:00-FLR-001",
+     "2024-05-13T09:12:00-CME-001",
+     "2024-05-13T09:36:00-FLR-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-13T14:00:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-13T14:00:00-SEP-001",
+    "eventTime": "2024-05-13T14:00Z",
+    "instruments": [
+     {
+      "displayName": "GOES-P: SEISS >10 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30817/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-13T08:06:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:23:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:47:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T09:12:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-13T09:36:00-FLR-001"
+     }
+    ],
+    "sentNotifications": [
+     {
+      "messageID": "20240513-AL-008",
+      "messageIssueTime": "2024-05-13T14:09Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30818/1"
+     },
+     {
+      "messageID": "20240513-AL-009",
+      "messageIssueTime": "2024-05-13T14:16Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30819/1"
+     }
+    ],
+    "submissionTime": "2024-05-13T14:09Z",
+    "versionId": 1
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [],
+    "basis": "instrument"
+   }
+  },
+  {
+   "id": "2024-05-13T16:19:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-13T16:19Z",
+   "sourceLocation": null,
+   "instruments": [
+    "MODEL: REleASE:ACE/EPAM 15.8-39.8 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30820/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-13T16:19Z",
+    "linkedEventIds": [
+     "2024-05-13T08:06:00-FLR-001",
+     "2024-05-13T08:23:00-FLR-001",
+     "2024-05-13T08:47:00-FLR-001",
+     "2024-05-13T09:12:00-CME-001",
+     "2024-05-13T09:36:00-FLR-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-13T16:19:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-13T16:19:00-SEP-001",
+    "eventTime": "2024-05-13T16:19Z",
+    "instruments": [
+     {
+      "displayName": "MODEL: REleASE:ACE/EPAM 15.8-39.8 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30820/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-13T08:06:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:23:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:47:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T09:12:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-13T09:36:00-FLR-001"
+     }
+    ],
+    "sentNotifications": [
+     {
+      "messageID": "20240513-AL-010",
+      "messageIssueTime": "2024-05-13T16:33Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30821/1"
+     }
+    ],
+    "submissionTime": "2024-05-13T16:19Z",
+    "versionId": 1
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [
+     "reported through a model/forecast source only (MODEL: …), not a direct instrument measurement"
+    ],
+    "basis": "model"
+   }
+  },
+  {
+   "id": "2024-05-13T18:07:00-SEP-001",
+   "eventType": "SEP",
+   "eventDate": "2024-05-13T18:07Z",
+   "sourceLocation": null,
+   "instruments": [
+    "SOHO: COSTEP 15.8-39.8 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30824/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-13T18:07Z",
+    "linkedEventIds": [
+     "2024-05-13T08:06:00-FLR-001",
+     "2024-05-13T08:23:00-FLR-001",
+     "2024-05-13T08:47:00-FLR-001",
+     "2024-05-13T09:12:00-CME-001",
+     "2024-05-13T09:36:00-FLR-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-13T18:07:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-13T18:07:00-SEP-001",
+    "eventTime": "2024-05-13T18:07Z",
+    "instruments": [
+     {
+      "displayName": "SOHO: COSTEP 15.8-39.8 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30824/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-13T08:06:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:23:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:47:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T09:12:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-13T09:36:00-FLR-001"
+     }
+    ],
+    "sentNotifications": null,
+    "submissionTime": "2024-05-13T18:33Z",
+    "versionId": 3
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [],
+    "basis": "instrument"
+   }
+  },
+  {
+   "id": "2024-05-13T18:07:00-SEP-002",
+   "eventType": "SEP",
+   "eventDate": "2024-05-13T18:07Z",
+   "sourceLocation": null,
+   "instruments": [
+    "SOHO: COSTEP 28.2-50.1 MeV"
+   ],
+   "sourceUrl": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30825/-1",
+   "retrievedAt": "2026-11-15T10:11:59.079Z",
+   "observed": {
+    "eventTime": "2024-05-13T18:07Z",
+    "linkedEventIds": [
+     "2024-05-13T08:06:00-FLR-001",
+     "2024-05-13T08:23:00-FLR-001",
+     "2024-05-13T08:47:00-FLR-001",
+     "2024-05-13T09:12:00-CME-001",
+     "2024-05-13T09:36:00-FLR-001"
+    ]
+   },
+   "derived": {
+    "eventDateUtc": "2024-05-13T18:07:00.000Z"
+   },
+   "rawEvent": {
+    "sepID": "2024-05-13T18:07:00-SEP-002",
+    "eventTime": "2024-05-13T18:07Z",
+    "instruments": [
+     {
+      "displayName": "SOHO: COSTEP 28.2-50.1 MeV"
+     }
+    ],
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30825/-1",
+    "linkedEvents": [
+     {
+      "activityID": "2024-05-13T08:06:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:23:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T08:47:00-FLR-001"
+     },
+     {
+      "activityID": "2024-05-13T09:12:00-CME-001"
+     },
+     {
+      "activityID": "2024-05-13T09:36:00-FLR-001"
+     }
+    ],
+    "sentNotifications": [
+     {
+      "messageID": "20240513-AL-011",
+      "messageIssueTime": "2024-05-13T18:39Z",
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30826/1"
+     }
+    ],
+    "submissionTime": "2024-05-13T18:33Z",
+    "versionId": 2
+   },
+   "dataQuality": {
+    "level": "complete",
+    "missingOptionalFields": [],
+    "notes": [],
+    "basis": "instrument"
+   }
+  }
+ ]
+}
