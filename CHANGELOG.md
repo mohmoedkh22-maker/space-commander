@@ -2,6 +2,52 @@
 
 **Live:** https://space-commander-theta.vercel.app
 
+## V8 — 2026-11-15 · NASA Science Data in the Game (tag `V8`)
+
+V8 connects real NASA space-weather and radiation data to the website and to the game, fully offline. The game never calls
+NASA while it is played; the data is downloaded once, validated, and published with the site.
+
+### Where the NASA data is
+| What | NASA source | In the repository | On the website |
+|---|---|---|---|
+| Solar events, May 2024: 144 CMEs, 14 SEPs (FLR unavailable: NASA HTTP 404) | NASA DONKI (api.nasa.gov) | `public/data/donki/` (`events.json`, `sep.json`, `metadata.json`) | `/data/donki/…` |
+| Radiation, May 2024: LRO/CRaTER in **lunar orbit** (744 hourly records) and BioSentinel in deep space (44,130 records) | NASA OSDR RadLab | `public/data/radlab/` (+ raw responses in `raw/`) | `/data/radlab/…` |
+| 27 educational scenarios + 3 SUHAIL lessons built from these records | generated offline from the two datasets | `public/data/scenarios/scenarios.json` | `/data/scenarios/scenarios.json` |
+
+**In the game**
+- **Start menu → 🔭 SUHAIL's Science Lessons**, and also a button on the Commander Report at the end of a mission.
+- Three guided lessons:
+  - *the solar particle alert* (NASA DONKI, GOES)
+  - *above the Moon or on it?* (CRaTER in lunar orbit)
+  - *they happened together — did one cause the other?* (correlation, not causation)
+- Every lesson shows its **NASA source**: dataset, observation date, record ids (linked to NASA's DONKI pages), where it was
+  measured, the value with its unit, and the scientific limits.
+- Labels separate **🛰 Historical NASA record** from **🎮 Simulated (game training scenario)**.
+- An optional **Science archive** lists all 27 scenarios.
+- A link to the **What If Lab** compares ideas qualitatively.
+
+The lessons never change resources, decisions, the day, the ending or the saved mission.
+
+**In the code**
+- `src/lib/nasa/donki/`, `src/lib/nasa/radlab/`: validation and offline sync.
+- `src/lib/nasa/scenarios/`: the scenario engine and its scientific-rule validator.
+- `src/components/screens/ScienceLessons.tsx` and `src/lib/game/scienceLessons.ts`: the in-game lessons.
+- Commands: `npm run sync:donki`, `npm run sync:radlab`, `npm run build:scenarios`.
+- Documentation: `docs/nasa/DONKI-DATA.md`, `docs/nasa/RADLAB-DATA.md`, `docs/nasa/SCIENTIFIC-SCENARIO-ENGINE.md`.
+
+### Scientific rules (enforced by tests)
+- **Lunar orbit and the surface:** CRaTER readings are lunar-**orbit** measurements, not lunar-surface values.
+- **Detector dose:** a detector's absorbed dose is not an astronaut's dose, and no equivalent dose is derived.
+- **BioSentinel** is never presented as a lunar measurement.
+- **Correlation is not causation:** a timing link is never presented as a cause.
+- **Missing data:** missing values stay missing, and zero readings are flagged rather than read as "no radiation".
+- **No invented values:** no confidence score is invented.
+- **No game effects:** radiation never changes oxygen, water, food or energy.
+
+### Also
+- `vercel.json` sets explicit build settings: `npm ci` → `npm run build` → `out/`.
+- 249 automated tests (103 new since V7).
+
 ## V7 — 2026-11-15 · Cinematic Game Experience (tag `V7`)
 
 ### Added
