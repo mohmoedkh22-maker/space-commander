@@ -14,8 +14,10 @@ import { CREW, UI, t } from "@/lib/i18n";
 import { RESOURCE_ORDER, resourceValue } from "@/lib/mission";
 import { MISSION_NAMES, MiniTimeline, NasaLightCard } from "../screens/Mission";
 import { useSettings } from "../settings";
-import { SuhailBot } from "../Suhail";
-import { Button, CrewSays, Panel } from "../ui";
+import { SuhailBot, SuhailSays, type Mood } from "../Suhail";
+import { afterDecisionCue, companionCue } from "@/lib/game/companion";
+import { decisionFeedback } from "@/lib/game/feedback";
+import { Button, CrewSays, Panel, StickyAction } from "../ui";
 import { OptionArt } from "./OptionArt";
 import { WhyPanel } from "./WhyPanel";
 import { explainDay, guidanceFor } from "@/lib/game/consequences";
@@ -40,7 +42,7 @@ function FancyTitle({ kicker, title, sub }: { kicker?: string; title: string; su
 }
 
 /** SUHAIL with a big speech bubble, as on the left of the mockups. */
-function SuhailCorner({ text, mood }: { text: T; mood: "curious" | "thinking" | "happy" | "warning" | "normal" }) {
+function SuhailCorner({ text, mood }: { text: T; mood: Mood }) {
   const { tx } = useSettings();
   return (
     <div className="flex items-start gap-3 lg:flex-col lg:items-center">
@@ -83,7 +85,8 @@ export function DecisionScreen({
       <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
         {/* Left: SUHAIL + investigation */}
         <aside className="flex flex-col gap-4">
-          <SuhailCorner mood="thinking" text={guidanceFor(id, state)} />
+          {/* SUHAIL looks worried when something is wrong, otherwise curious: he asks, the child decides */}
+          <SuhailCorner mood={(() => { const c = companionCue(state, d.mission === 1 ? "mission-1" : d.mission === 2 ? "mission-2" : "mission-3"); return c.ruleId && c.expression !== "happy" ? c.expression : "curious"; })()} text={guidanceFor(id, state)} />
           {notes.length > 0 && (
             <Panel className="!p-4" style={{ borderColor: "#43d9a3aa" }}>
               <h2 className="mb-2 font-display font-bold text-mint">📝 {tx(t("ملاحظات تحقيقك", "Your investigation notes"))}</h2>
@@ -203,20 +206,20 @@ export function DecisionScreen({
               );
             })}
           </div>
-          <div className="mt-6 flex justify-center">
+          <StickyAction>
             <Button
               size="lg"
               disabled={!choice}
               className="min-w-[min(100%,360px)]"
               onClick={() => {
                 if (!choice) return;
-                beep("ok");
+                beep("confirm");
                 onConfirm(choice);
               }}
             >
               ▶ {tx(t("تأكيد الاختيار", "Confirm choice"))}
             </Button>
-          </div>
+          </StickyAction>
         </section>
       </div>
     </main>
@@ -237,14 +240,16 @@ export function ConsequenceScreen({ record, after, onNext }: { record: DecisionR
   const crew = CREW[o.crew.who];
   // the base is shown as it WAS, then switches to how it IS now
   const [live, setLive] = useState(false);
+  const tone = decisionFeedback(record, after).tone;
   useEffect(() => {
     const id = window.setTimeout(() => {
       setLive(true);
-      beep("facility");
+      beep(tone === "success" ? "success" : tone === "careful" ? "notify" : "warning");
     }, 700);
     return () => window.clearTimeout(id);
-  }, [beep]);
+  }, [beep, tone]);
   const shown = live ? after : record.before;
+  const fb = decisionFeedback(record, after);
   const facilityChanges = explainFacilities(record.before, after);
 
   return (
@@ -263,7 +268,12 @@ export function ConsequenceScreen({ record, after, onNext }: { record: DecisionR
             <span className="absolute end-3 top-3 z-10">
               <BaseConditionChip state={shown} />
             </span>
-            <LunarBase status={facilityStatus(shown)} storm={shown.flags.storm} energyPct={(shown.resources.energy / BATTERY_CAP_KWH) * 100} />
+            <LunarBase
+              status={facilityStatus(shown)}
+              storm={shown.flags.storm}
+              energyPct={(shown.resources.energy / BATTERY_CAP_KWH) * 100}
+              light={(live ? log : record.before.log.at(-1))?.sunlitFraction}
+            />
           </div>
           {facilityChanges.length > 0 && (
             <ul className="flex flex-col gap-2" aria-label={tx(t("ماذا تغيّر في القاعدة", "What changed in the base"))}>
@@ -274,11 +284,24 @@ export function ConsequenceScreen({ record, after, onNext }: { record: DecisionR
               ))}
             </ul>
           )}
-          <div className="flex justify-center">
-            <SuhailBot mood="happy" size={110} />
-          </div>
+          {/* first "an important decision!", then his reaction to how the base looks now */}
+          <SuhailSays mood={live ? companionCue(after, "after-decision").expression : afterDecisionCue().expression} text={live ? companionCue(after, "after-decision").reaction : afterDecisionCue().reaction} />
         </div>
         <section className="panel flex flex-col gap-5 p-5 sm:p-7" style={{ borderColor: "#4fe5ffaa", boxShadow: "0 0 36px #4fe5ff22" }}>
+          {/* Phase 4: how the day shaped by this decision went (judged by the engine's day log) */}
+          {live && (
+            <p
+              className={`burst rounded-2xl border-2 px-4 py-3 text-center ${fb.tone === "success" ? "border-mint bg-mint/15" : fb.tone === "careful" ? "border-solar bg-solar/10" : "border-coral bg-coral/10"}`}
+              role="status"
+              data-decision-tone={fb.tone}
+            >
+              <b className="block font-display text-xl">
+                {fb.tone === "success" ? "✨ " : fb.tone === "careful" ? "⚖️ " : "⚠️ "}
+                {tx(fb.title)}
+              </b>
+              <span className="text-base leading-relaxed">{tx(fb.text)}</span>
+            </p>
+          )}
           <div className="flex flex-col items-center gap-3 text-center">
             <p className="flex items-center gap-3 rounded-full border-[3px] border-mint bg-mint/15 py-2 pe-6 ps-2 text-xl font-bold shadow-[0_0_24px_#43d9a355] sm:text-2xl">
               <span className="grid size-10 place-items-center rounded-full bg-mint text-space" aria-hidden>
@@ -337,11 +360,11 @@ export function ConsequenceScreen({ record, after, onNext }: { record: DecisionR
         </section>
       </div>
 
-      <div className="mt-6 flex justify-center">
+      <StickyAction>
         <Button size="lg" onClick={onNext} className="min-w-[min(100%,360px)]" autoFocus>
           ▶ {tx(t("التالي", "Next"))}
         </Button>
-      </div>
+      </StickyAction>
     </main>
   );
 }

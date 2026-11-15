@@ -2,6 +2,25 @@
 
 **Live:** https://space-commander-theta.vercel.app
 
+## V7 — 2026-11-15 · Cinematic Game Experience (tag `V7`)
+
+### Added
+- **Cinematic opening** (6 scenes) that starts on the first launch: deep space → approaching SELENE-1 → mission alert from
+  Mission Control → SUHAIL → the crew → the commander moment ("Start Mission" / "Discover the story"). It can be skipped
+  (button or Esc), honours Reduce Motion, and plays no sound before the first tap
+- **Expressive SUHAIL**: an animated vector version of the approved character with 8 expressions (idle, curious, thinking,
+  explaining, warning, happy, encouraging, concerned) that react to the real game state, using the brief's lines; he never chooses for the child
+- **Cinematic start menu** over a living lunar scene. SUHAIL explains each item; arrow-key navigation; Continue for a saved mission;
+  a confirmation before a new mission replaces it; a 🏠 Menu button inside the game
+- **Gameplay feedback**: resource ▲/▼ flashes and a critical pulse; mission notifications (energy low, water critical, faults,
+  storm, safety); honest decision feedback ("Well-chosen!" / "A decision with a cost" / "The base struggled"); the base map dims with the day's NASA sunlight
+- **Audio**: a mixer with music and effects volumes plus Mute everything, a menu theme and calm base ambience, and new cues
+  (confirm, success, warning, notify, transition). All original, generated in the browser
+- **Responsive**: compact sticky top bar with a ☰ menu on phones; main buttons pinned at the bottom on phones and tablets;
+  no sticky bars on short landscape screens; 44 px targets
+- **QA**: golden-path end-to-end test; a neutral boot frame (no flash of the wrong screen or language); QA report in `docs/qa-report.md`
+- 146 automated tests
+
 ## V6 — 2026-11-15 · Complete Mission Experience (tag `V6`)
 
 ### Added

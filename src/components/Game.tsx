@@ -1,5 +1,7 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { setSoundscape } from "@/lib/audio";
+import { soundscapeFor } from "@/lib/soundscape";
 import { computeEnding, simulate, STEPS, tryApplyDecision } from "@/lib/game/engine";
 import type { Choices, DecisionId } from "@/lib/game/types";
 import { Toolbar } from "./Hud";
@@ -20,6 +22,7 @@ import { OutcomeScreen, ReportScreen } from "./screens/Outcome";
 import { ScienceScreen } from "./screens/Science";
 import { WhatIfLab, type LabResult } from "./screens/WhatIfLab";
 import { Scene } from "./experience/Journey";
+import { OrbitStarLogo } from "./Brand";
 
 type Screen = "splash" | "intro" | "briefing" | "tour" | "play" | "outcome" | "lab" | "report";
 
@@ -32,7 +35,7 @@ export default function Game() {
 }
 
 function GameInner() {
-  const { introDone, set } = useSettings();
+  const { introDone, set, ready, music, audioReady, beep } = useSettings();
   const [screen, setScreen] = useState<Screen>("splash");
   const [science, setScience] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
@@ -85,6 +88,53 @@ function GameInner() {
     } else setStepIndex(n);
   };
 
+  // Phase 5: one soundscape per part of the game (the cinematic manages its own while it plays)
+  useEffect(() => {
+    if (screen === "intro") return;
+    setSoundscape(music && audioReady ? soundscapeFor(screen) : "none");
+  }, [screen, music, audioReady]);
+  useEffect(() => () => setSoundscape("none"), []);
+  // a quiet whoosh between major scenes
+  const firstScreen = useRef(true);
+  useEffect(() => {
+    if (firstScreen.current) {
+      firstScreen.current = false;
+      return;
+    }
+    beep("transition");
+  }, [screen, beep]);
+
+  /** A brand-new mission always begins at the Mission Briefing (saved progress is offered separately on the menu). */
+  const [sawOpening, setSawOpening] = useState(false);
+  const startNewMission = (fromOpening = false) => {
+    setSawOpening(fromOpening);
+    clearProgress();
+    resetExperience();
+    setChoices({});
+    setStepIndex(0);
+    setConsequence(null);
+    setLab(null);
+    setScreen("briefing");
+  };
+
+  // Phase 1: the cinematic opening starts by itself the first time the game is launched on this device.
+  const [autoIntroShown, setAutoIntroShown] = useState(false);
+  useEffect(() => {
+    if (ready && !introDone && !autoIntroShown && screen === "splash") {
+      setAutoIntroShown(true);
+      setScreen("intro");
+    }
+  }, [ready, introDone, autoIntroShown, screen]);
+
+  /** Phase 3: back to the start menu from anywhere; the mission stays saved and can be continued. */
+  const goMenu = () => {
+    try {
+      setSaved(parseProgress(localStorage.getItem(PROGRESS_KEY)));
+    } catch {}
+    setScience(false);
+    setScreen("splash");
+  };
+
   const restart = () => {
     clearProgress();
     resetExperience();
@@ -95,23 +145,17 @@ function GameInner() {
     setScreen("splash");
   };
 
+  // QA (Phase 7): until this device's settings are read, show a neutral boot frame — never a flash of the
+  // wrong screen (the menu before the opening) or the wrong language.
+  if (!ready) return <Boot />;
   if (science) return <ScienceScreen onBack={() => setScience(false)} />;
   if (screen === "splash")
     return (
       <Splash
-        // First visit: the cinematic. Returning players go straight to the mission.
-        onStart={() => {
-          // Start always means a NEW mission; saved progress is offered separately.
-          clearProgress();
-          resetExperience();
-          setChoices({});
-          setStepIndex(0);
-          setConsequence(null);
-          setLab(null);
-          // V0.7 journey: (cinematic, first time only) → Mission Briefing → Lunar Base → Mission 01
-          setScreen(introDone ? "briefing" : "intro");
-        }}
+        // The cinematic plays by itself on the first launch (and from "Replay intro"); Start goes into the mission.
+        onStart={() => startNewMission()}
         resumeDay={saved && saved.stepIndex > 0 ? savedDay : undefined}
+        resumeFinished={!!saved && saved.stepIndex >= STEPS.length}
         onResume={() => {
           if (!saved) return;
           // chapters already behind the saved step don't replay their intro / debrief
@@ -131,35 +175,37 @@ function GameInner() {
           setScreen(saved.stepIndex >= STEPS.length ? "outcome" : "play");
         }}
         onReplayIntro={() => setScreen("intro")}
-        onGuide={() => setScreen("briefing")}
+        onGuide={() => {
+          setSawOpening(false); // "Crew & base" from the menu always shows the whole briefing
+          setScreen("briefing");
+        }}
         onScience={() => setScience(true)}
       />
     );
   if (screen === "intro")
     return (
       <CinematicIntro
-        onFinish={() => {
+        onStart={() => {
           set({ introDone: true });
-          // Day 1 was just shown in the cinematic, so the mission opens on the first decision.
-          if (stepIndex === 0) setStepIndex(1);
-          setScreen("briefing");
+          startNewMission(true);
         }}
         onSkip={() => {
           set({ introDone: true });
-          setScreen("briefing");
+          setScreen("splash");
         }}
       />
     );
   if (screen === "briefing")
     return (
       <Scene id="briefing">
-        <MissionBriefing onDone={() => setScreen("tour")} />
+        <MissionBriefing startStep={sawOpening ? 3 : 0} onDone={() => setScreen("tour")} />
       </Scene>
     );
   if (screen === "tour")
     return (
       <Scene id="tour">
         <LunarBaseScreen
+          onMenu={goMenu}
           onDone={() => {
             // Day 1 ("systems online") is the arrival; the first challenge starts on Day 2.
             if (stepIndex === 0) setStepIndex(1);
@@ -174,7 +220,7 @@ function GameInner() {
   if (screen === "outcome" && !seen.has("result-3")) {
     return (
       <>
-        <MissionHUD state={final.state} onScience={() => setScience(true)} />
+        <MissionHUD state={final.state} onScience={() => setScience(true)} onMenu={goMenu} />
         <MissionResult mission={3} choices={choices} onContinue={() => markSeen("result-3")} />
       </>
     );
@@ -182,7 +228,7 @@ function GameInner() {
   if (screen === "outcome") {
     return (
       <>
-        <MissionHUD state={final.state} onScience={() => setScience(true)} />
+        <MissionHUD state={final.state} onScience={() => setScience(true)} onMenu={goMenu} />
         <Scene id="outcome">
           <OutcomeScreen ending={ending} state={final.state} onLab={() => setScreen("lab")} />
         </Scene>
@@ -192,7 +238,7 @@ function GameInner() {
   const topBar = (
     <div className="sticky top-0 z-20 border-b border-holo/15 bg-space/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl justify-end px-4 py-2">
-        <Toolbar onScience={() => setScience(true)} />
+        <Toolbar onScience={() => setScience(true)} onMenu={goMenu} />
       </div>
     </div>
   );
@@ -309,8 +355,25 @@ function GameInner() {
 
   return (
     <>
-      <MissionHUD state={hudState} onScience={() => setScience(true)} />
+      <MissionHUD state={hudState} onScience={() => setScience(true)} onMenu={goMenu} />
       <Scene id={consequence ? `consequence-${consequence}` : `${step}-${seen.size}`}>{body}</Scene>
     </>
+  );
+}
+
+/** Neutral first frame (also what the static HTML contains). */
+function Boot() {
+  return (
+    <div className="fixed inset-0 grid place-items-center bg-[#02040c]" aria-busy="true" data-screen="boot">
+      <div className="anim-glow flex flex-col items-center gap-4">
+        <OrbitStarLogo size={72} />
+        <span className="sr-only">SPACE COMMANDER — Operation Moonlight</span>
+      </div>
+      <noscript>
+        <p className="absolute inset-x-0 bottom-8 px-4 text-center text-lunar">
+          هذه اللعبة تحتاج JavaScript · This game needs JavaScript
+        </p>
+      </noscript>
+    </div>
   );
 }

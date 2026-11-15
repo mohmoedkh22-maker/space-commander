@@ -62,9 +62,10 @@ function StepFrame({ step, children, onBack, onNext, nextLabel }: { step: number
 }
 
 /** Four-step mission briefing: mission → commander → crew → resources. */
-export function MissionBriefing({ onDone }: { onDone: () => void }) {
+export function MissionBriefing({ onDone, startStep = 0 }: { onDone: () => void; startStep?: number }) {
   const { tx } = useSettings();
-  const [step, setStep] = useState(0);
+  // after the full cinematic opening (welcome, commander, crew already shown) the briefing starts at the resources
+  const [step, setStep] = useState(startStep);
   const start = useMemo(() => createInitialState(), []);
   const back = step > 0 ? () => setStep(step - 1) : undefined;
   const next = () => (step < 3 ? setStep(step + 1) : onDone());
@@ -168,7 +169,7 @@ export function MissionBriefing({ onDone }: { onDone: () => void }) {
 }
 
 /** Explorable lunar base: tap a building or use the list (keyboard friendly) to open its card. */
-export function LunarBaseScreen({ onDone, onScience }: { onDone: () => void; onScience?: () => void }) {
+export function LunarBaseScreen({ onDone, onScience, onMenu }: { onDone: () => void; onScience?: () => void; onMenu?: () => void }) {
   const { tx } = useSettings();
   const start = useMemo(() => createInitialState(), []);
   const [sel, setSel] = useState<FacilityId | null>(null);
@@ -184,7 +185,7 @@ export function LunarBaseScreen({ onDone, onScience }: { onDone: () => void; onS
   const ready = seen.size >= 3;
   return (
     <>
-      <MissionHUD state={start} onScience={onScience} note={tx(DEMO_NOTE)} />
+      <MissionHUD state={start} onScience={onScience} onMenu={onMenu} note={tx(DEMO_NOTE)} />
       <main className="mx-auto max-w-6xl px-4 py-6">
         <div className="mb-4">
           <Stepper steps={BRIEFING_STEPS} current={4} />

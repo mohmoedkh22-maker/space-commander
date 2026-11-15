@@ -54,6 +54,7 @@ export function LunarBase({
   storm = false,
   alert = null,
   energyPct,
+  light,
 }: {
   status: Record<FacilityId, Status>;
   onSelect?: (id: FacilityId) => void;
@@ -63,6 +64,8 @@ export function LunarBase({
   alert?: FacilityId | null;
   /** battery fill shown on the power station (0..100) */
   energyPct?: number;
+  /** Phase 4: share of the day the site is sunlit (NASA SVS data, 0..1). Low light dims the Sun and the landscape. */
+  light?: number;
 }) {
   const { tx } = useSettings();
   const glow = (st: Status, c: string) => (st === "crit" ? "#ff6b6b" : st === "warn" ? "#ffad4d" : st === "dim" ? "#aab6ca55" : c);
@@ -89,7 +92,16 @@ export function LunarBase({
       <circle cx="690" cy="70" r="34" fill="url(#earth)" />
       <path d="M672 58 q10 -8 20 2 q-6 10 -16 6z M700 82 q8 -4 12 4 q-6 6 -12 -4z" fill="#43d9a3" opacity="0.7" />
       {/* Low Sun near the horizon (south pole) */}
-      <circle cx="60" cy="190" r="16" fill="#ffad4d" opacity={storm ? 0.9 : 0.75} className="anim-glow" />
+      <circle
+        cx="60"
+        cy={light === undefined ? 190 : 196 - light * 10}
+        r="16"
+        fill="#ffad4d"
+        opacity={light === undefined ? (storm ? 0.9 : 0.75) : 0.15 + light * 0.7}
+        className={light !== undefined && light < 0.05 ? "" : "anim-glow"}
+        style={{ transition: "opacity 1.2s ease, cy 1.2s ease" }}
+        data-light={light}
+      />
       <path d="M0 200 L120 175 L210 195 L330 168 L420 190 L560 160 L680 185 L800 170 L800 470 L0 470 Z" fill="#262d42" />
       {/* Ground plate */}
       <polygon points={[P(-140, -60), P(420, -60), P(420, 380), P(-140, 380)].join(" ")} fill="url(#ground)" />
@@ -105,6 +117,10 @@ export function LunarBase({
         <polyline points={[P(0, 55), P(30, 120)].join(" ")} />
       </g>
       {storm && <rect x="0" y="0" width="800" height="470" fill="#8c78ff" opacity="0.12" className="anim-glow" />}
+      {/* less sunlight → a darker landscape (the base's own lights stay on, they are drawn on top) */}
+      {light !== undefined && (
+        <rect x="0" y="0" width="800" height="470" fill="#02040c" opacity={Math.max(0, (1 - light) * 0.45)} style={{ transition: "opacity 1.2s ease" }} aria-hidden />
+      )}
 
       {(Object.keys(LAYOUT) as FacilityId[]).map((id) => {
         const L = LAYOUT[id];

@@ -224,7 +224,7 @@ function WeekBars({ week }: { week: DailyLight[] }) {
               <div className={`w-full rounded ${short ? "bg-coral/70" : "bg-solar/80"}`} style={{ height: `${d.sunlitFraction * 100}%` }} />
             </div>
             <span className="text-xs">{pct(d.sunlitFraction)}</span>
-            <span className="flex flex-col items-center text-[10px] leading-tight text-moon" dir="ltr">
+            <span className="flex flex-col items-center text-xs leading-tight text-moon" dir="ltr">
               <span className="font-bold">
                 {tx(t("يوم", "Day"))} {i + 1}
               </span>

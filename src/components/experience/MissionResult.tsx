@@ -10,10 +10,11 @@ import { LunarBase, facilityStatus } from "../LunarBase";
 import { ResourceIndicator } from "../mission/ResourceIndicator";
 import { useSettings } from "../settings";
 import { SuhailBot } from "../Suhail";
-import { Button } from "../ui";
+import { Button, StickyAction } from "../ui";
 import { useCountUp } from "./CountUp";
 import { BaseFrame, CrewReports } from "./Journey";
 import { suhailLines } from "@/lib/game/dialogue";
+import { companionCue } from "@/lib/game/companion";
 
 const LEVEL = { ok: "#43d9a3", warn: "#ffad4d", crit: "#ff6b6b" } as const;
 
@@ -34,7 +35,7 @@ export function MissionResult({ mission, choices, onContinue }: { mission: Missi
   const nextTitle = mission < 3 ? MISSION_INTROS[(mission + 1) as MissionId].title : null;
 
   useEffect(() => {
-    beep("ok");
+    beep("success");
   }, [beep]);
 
   return (
@@ -63,7 +64,7 @@ export function MissionResult({ mission, choices, onContinue }: { mission: Missi
       <div className="grid gap-5 lg:grid-cols-[minmax(0,440px)_1fr]">
         <div className="flex flex-col gap-3">
           <BaseFrame state={s}>
-            <LunarBase status={facilityStatus(s)} storm={s.flags.storm} energyPct={(s.resources.energy / BATTERY_CAP_KWH) * 100} />
+            <LunarBase status={facilityStatus(s)} storm={s.flags.storm} energyPct={(s.resources.energy / BATTERY_CAP_KWH) * 100} light={s.log.at(-1)?.sunlitFraction} />
           </BaseFrame>
           <ul className="grid grid-cols-2 gap-2 text-sm">
             {INSPECTION_ORDER.map((id) => {
@@ -136,10 +137,10 @@ export function MissionResult({ mission, choices, onContinue }: { mission: Missi
           <CrewReports state={s} title={t("الطاقم يرفع تقاريره", "The crew reports in")} />
 
           <div className="flex items-start gap-3">
-            <SuhailBot mood={res.outlook === "fewer-options" ? "thinking" : "happy"} size={84} />
+            <SuhailBot mood={(() => { const c = companionCue(s, "chapter-end"); return c.ruleId ? c.expression : res.outlook === "fewer-options" ? "thinking" : "happy"; })()} size={84} />
             <p className="panel flex-1 px-4 py-3 text-lg leading-relaxed" style={{ borderColor: "#4fe5ffaa" }}>
               <b className="text-holo">{tx(t("سهيل:", "SUHAIL:"))}</b> {tx(res.closing)}
-              {suhailLines(s, "chapter-end", 1).map((l) => (
+              {suhailLines(s, "chapter-end", 1).filter((l) => !res.closing.en.includes(l.text.en)).map((l) => (
                 <span key={l.id} className="mt-2 block text-base text-lunar/90">
                   {tx(l.text)}
                 </span>
@@ -147,9 +148,11 @@ export function MissionResult({ mission, choices, onContinue }: { mission: Missi
             </p>
           </div>
 
-          <Button size="lg" onClick={onContinue} autoFocus className="self-center">
-            {mission < 3 ? tx(t("إلى المهمة التالية", "To the next mission")) : tx(t("النتيجة النهائية", "Final outcome"))} ▶
-          </Button>
+          <StickyAction>
+            <Button size="lg" onClick={onContinue} autoFocus>
+              {mission < 3 ? tx(t("إلى المهمة التالية", "To the next mission")) : tx(t("النتيجة النهائية", "Final outcome"))} ▶
+            </Button>
+          </StickyAction>
         </div>
       </div>
     </main>

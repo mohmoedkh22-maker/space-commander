@@ -16,12 +16,15 @@ export function DialogueBox({
   onDone,
   doneLabel,
   onLine,
+  audio,
 }: {
   speaker: string;
   lines: T[];
   onDone: () => void;
   doneLabel?: string;
   onLine?: (i: number) => void;
+  /** play the radio blip for each line (defaults to the Sound setting) */
+  audio?: boolean;
 }) {
   const { tx, sound, reducedMotion } = useSettings();
   const [i, setI] = useState(0);
@@ -54,8 +57,8 @@ export function DialogueBox({
 
   useEffect(() => {
     onLine?.(i);
-    if (sound) radioStatic();
-  }, [i, sound, onLine]);
+    if (audio ?? sound) radioStatic();
+  }, [i, sound, audio, onLine]);
 
   const advance = useCallback(() => {
     if (!full) {

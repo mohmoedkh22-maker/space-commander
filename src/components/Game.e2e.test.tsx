@@ -110,14 +110,14 @@ async function playJourney(choices: Required<Choices>, lang: Lang, firstVisit = 
   render(<Game />);
   await waitFor(() => expect(document.documentElement.dir).toBe(lang === "ar" ? "rtl" : "ltr"));
 
-  // Start Menu → (Cinematic, first visit) → Mission Briefing → Lunar Base
-  await click(l.start);
+  // (first launch: the cinematic opening plays by itself → skip to the menu) → Start Menu → Mission Briefing → Lunar Base
   if (firstVisit) {
     const skip = (await screen.findAllByRole("button", { name: l.skip })).find((b) => b.textContent?.includes("⏭"))!;
     await act(async () => {
       fireEvent.click(skip);
     });
   }
+  await click(l.start);
   for (let i = 0; i < 3; i++) await click(l.next);
   await click(l.enterBase);
   const nav = await screen.findByRole("navigation", { name: l.facilities });
@@ -170,7 +170,7 @@ async function playJourney(choices: Required<Choices>, lang: Lang, firstVisit = 
 }
 
 describe("V0.7 end-to-end player journey (rendered UI)", () => {
-  it("English, first visit: start → cinematic → briefing → base → 3 chapters → Mission Accomplished → What If Lab → report", async () => {
+  it("English, first visit: cinematic (skipped) → start → briefing → base → 3 chapters → Mission Accomplished → What If Lab → report", async () => {
     const e = await playJourney({ "d1-energy": "save-energy", "d2-water": "repair", "d3-emergency": "full-ops" }, "en", true);
     expect(e).toBe("A");
   }, 60000);
@@ -182,4 +182,77 @@ describe("V0.7 end-to-end player journey (rendered UI)", () => {
     const e = await playJourney({ "d1-energy": "balance", "d2-water": "repair", "d3-emergency": "conserve" }, "en");
     expect(e).toBe("C");
   }, 60000);
+});
+
+describe("Phase 7 — golden path: first launch to Commander Report, nothing skipped", () => {
+  it("watches the whole opening, plays all 7 days, checks the feedback, uses the lab, reads the report, goes back to the menu", async () => {
+    localStorage.setItem("space-commander-settings", JSON.stringify({ lang: "en", reducedMotion: true }));
+    const l = L.en;
+    render(<Game />);
+    // 1. the opening starts by itself
+    await waitFor(() => expect(document.querySelector('[aria-roledescription="cinematic"]')).not.toBeNull());
+    for (let i = 0; i < 3; i++) await click(/^Continue ▶$/); // space → approach → alert → SUHAIL
+    await click(/^Continue ▶$/);
+    await click(/^Continue ▶$/);
+    await click(/Meet your crew/);
+    for (let i = 0; i < 3; i++) await click(/^Next ▶$/);
+    await click(/^Continue ▶$/); // crew → commander moment
+    await click(/^Continue ▶$/);
+    await click(/^Continue ▶$/);
+    await click(/Start Mission/);
+    // 2. briefing (opens at the resources after the full opening) → lunar base
+    await screen.findByText("The four resources");
+    await click(l.enterBase);
+    const nav = await screen.findByRole("navigation", { name: l.facilities });
+    for (const b of within(nav).getAllByRole("button").slice(0, 3)) {
+      await act(async () => {
+        fireEvent.click(b);
+      });
+    }
+    await click(l.beginDay1);
+    // 3. three chapters, checking the feedback on the way
+    const choices = { "d1-energy": "farm-full", "d2-water": "repair", "d3-emergency": "essential" } as const;
+    for (const [i, id] of (["d1-energy", "d2-water", "d3-emergency"] as DecisionId[]).entries()) {
+      await click(l.skip);
+      if (i === 2) expect(document.querySelector('[data-base-condition="critical"]')).not.toBeNull(); // the emergency
+      await investigate(l);
+      const label = DECISIONS[id].options.find((o) => o.id === choices[id])!.label.en;
+      await act(async () => {
+        fireEvent.click(await screen.findByRole("radio", { name: new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) }));
+      });
+      await click(l.confirm);
+      // honest decision feedback appears once the base has changed
+      await waitFor(() => expect(document.querySelector("[data-decision-tone]")).not.toBeNull(), { timeout: 3000 });
+      if (id === "d1-energy") {
+        expect(document.querySelector("[data-decision-tone]")!.getAttribute("data-decision-tone")).toBe("careful");
+        expect(document.querySelector('[data-notice="energy-low"]')).not.toBeNull();
+      }
+      await click(l.nextAfter);
+      await finishChapter(l, i === 2);
+    }
+    // 4. outcome = what the engine computes
+    const expected = computeEnding(simulate(choices).state);
+    expect((await screen.findByRole("listitem", { current: true })).textContent).toContain(ENDINGS[expected].badge.en);
+    expect(document.querySelector('[data-base-condition="complete"]')).not.toBeNull();
+    // 5. What If Lab
+    await click(l.lab);
+    await click(l.labDay);
+    const alt = (await screen.findAllByRole("button", { name: l.whatIf })).find((b) => !(b as HTMLButtonElement).disabled)!;
+    await act(async () => {
+      fireEvent.click(alt);
+    });
+    await click(l.predictNext);
+    await act(async () => {
+      fireEvent.click(await screen.findByRole("radio", { name: l.higher }));
+    });
+    await click(l.run);
+    await screen.findByText(new RegExp(l.split));
+    // 6. Commander Report
+    await click(l.report);
+    await screen.findByText(l.concepts, { exact: false });
+    // 7. back to the menu: the finished mission can be continued (to its report screens)
+    await click(/Menu/);
+    await waitFor(() => expect(document.querySelector('[data-menu-item="resume"]')).not.toBeNull());
+    expect(document.querySelector('[data-menu-item="resume"]')!.textContent).toContain("My mission result & report");
+  }, 90000);
 });

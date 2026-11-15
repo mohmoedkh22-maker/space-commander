@@ -120,9 +120,24 @@ export function Switch({ label, checked, onChange, on, off }: { label: string; c
 }
 
 /** Small honest label for artwork that is not final. */
+/**
+ * Phase 6: keeps a screen's main action within reach on phones and tablets (sticky at the bottom),
+ * and sits normally in the page on wide screens and on short landscape screens.
+ */
+export function StickyAction({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      className={`sticky bottom-0 z-10 -mx-4 mt-6 flex justify-center gap-3 border-t border-holo/20 bg-space/90 px-4 py-3 backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none [@media(max-height:500px)]:static [@media(max-height:500px)]:border-0 [@media(max-height:500px)]:bg-transparent ${className}`}
+      data-sticky-action
+    >
+      {children}
+    </div>
+  );
+}
+
 export function PlaceholderTag({ text }: { text: string }) {
   return (
-    <span className="inline-block rounded-md border border-dashed border-moon/50 px-2 py-0.5 text-[11px] text-moon">{text}</span>
+    <span className="inline-block rounded-md border border-dashed border-moon/50 px-2 py-0.5 text-xs text-moon">{text}</span>
   );
 }
 

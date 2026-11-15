@@ -1,5 +1,314 @@
 # progress.md
 
+## 2026-11-15 · Cinematic Game Experience: PHASE 7, Quality Assurance
+All seven phases are complete. Nothing pushed or deployed. Full report: `docs/qa-report.md`.
+
+- **Golden-path test** (in `Game.e2e.test.tsx`): first launch → the whole opening (no skipping) → briefing → base → 3 chapters
+  (checks the emergency state, decision feedback and the energy notification) → outcome = engine result → What If Lab → report →
+  Menu → "My mission result & report"
+- **Production build played in the browser** (AR, 375 px): full journey to Mission Accomplished, lab, report, science, menu;
+  zero console messages; no horizontal overflow
+- Accessibility scan on menu, settings, outcome and lab: no unnamed controls, no images without alt text, no duplicate ids,
+  no unlabelled inputs, one h1, `lang`/`dir` set
+- Size: first-load JS 194 kB; whole site 1.8 MB
+- **Fixed in this phase:**
+  - A first-load flash of the (Arabic) start menu before the opening → neutral boot frame until settings are read
+    (also in the static HTML, with a no-JavaScript message)
+  - Hard-to-read "OPERATION MOONLIGHT" over the Moon → moved under the title
+  - "Continue my mission · Day 7" for a finished mission → "My mission result & report"
+- **All 13 success criteria met** (evidence table in `docs/qa-report.md`). Tests: **146 passing**; tsc, eslint and build pass
+- **Still to do by people:** listen to the sound on real speakers; try a real phone and tablet; watch the opening at normal speed;
+  the team to confirm the vector SUHAIL design
+
+## 2026-11-15 · Cinematic Game Experience: PHASE 6, Responsive Experience
+Builds on Phases 1–5. Phase 7 (QA) is not started. Nothing pushed or deployed.
+
+**Audit (measured in the browser, Arabic):** every screen of the journey at **375×812 (phone)**, plus the main screens at **768×1024
+(tablet)**, **812×375 (landscape phone)** and **1280×800 (desktop)**. Each screen was checked for horizontal overflow, controls smaller
+than 40 px, text under 12 px, top-bar height and whether the main action is reachable.
+
+**Found**
+- No horizontal overflow at any width ✓
+- Phone: the top bar was ~200 px and scrolled away, so resource changes were out of sight
+- Long screens with the main button far below: decision ~2,800 px (Confirm at 2,725), consequence ~2,560, debrief ~2,400, outcome ~1,800
+- Landscape phone: the sticky top bar took 128 of 375 px, and Mission Control's sticky bar took more
+- Small items: step markers 36 px (shown as disabled buttons), notification close button 36 px, ☰ 38 px wide; science week labels 10 px
+  and art credit 11 px
+- Tablet: one-column screens stretched the base map to ~720 px
+
+**Fixed**
+- **Phone top bar:** compact and sticky (**93 px**): day, chapter numbers, base status and a **☰** button that folds Menu / Language /
+  Sound / Settings / Science (all 44 px when opened). The four resources are one row of icon + number + bar (names stay for screen readers).
+  Tablet and desktop keep the full toolbar
+- **Short landscape screens (height ≤ 500 px):** the top bar and bottom bars stop sticking, so the game gets the whole screen
+- **Main action within reach:** new `StickyAction` pins Confirm choice, Next, Continue, To the next mission / Final outcome and
+  Enter the What If Lab to the bottom on phones and tablets. It sits normally in the page on desktop and on short landscape screens
+- Base map capped at ~576 px in one-column layouts
+- Step markers are plain markers (not disabled buttons); when jumping is allowed they are 44 px buttons
+- Notification close button 44 px; small text raised to 12 px
+
+**Files:** `ui.tsx` (`StickyAction`, tag size), `Hud.tsx` (☰), `mission/MissionHUD.tsx`, `mission/ResourceIndicator.tsx`,
+`mission/Stepper.tsx`, `mission/DecisionCards.tsx`, `screens/Mission.tsx`, `screens/Outcome.tsx`, `screens/Science.tsx`,
+`experience/MissionResult.tsx`, `experience/BaseHub.tsx`, `experience/Journey.tsx`. New test: `Responsive.test.tsx`
+
+**Re-measured after the fixes:** phone top bar 93 px and sticky (224 px with ☰ open); the Confirm bar pinned at the bottom
+(723–812 px) once the options are in view; landscape top and bottom bars static; desktop unchanged (full toolbar, nothing pinned);
+no horizontal overflow. Seen by eye at 375 px and 1280 px
+
+**Tests:** **145 passing** (4 new): ☰ folds/opens the toolbar; the top bar is sticky except on short screens, with icon-only labels on phones;
+`StickyAction` behaviour; step markers vs 44 px buttons. tsc, eslint and build pass
+
+**Known issues / limits**
+- jsdom has no layout, so the tests check the responsive rules; the sizes themselves were measured in the browser, not in CI
+- Not tested on a real phone or tablet (browser emulation only)
+- On the decision screen the Confirm bar appears once the child scrolls to the options (sticky works inside the options section)
+
+## 2026-11-15 · Cinematic Game Experience: PHASE 5, Audio & Animation
+Builds on Phases 1–4. Phases 6–7 are not started. Nothing pushed or deployed.
+
+**Found before changing**
+- Every sound went straight to the speakers, so there was no music or effects volume and no mute
+- Music and ambience existed only in the opening; the base itself was silent
+- Only the opening guarded against sound before the first tap
+- Reduce Motion did not follow the device setting
+
+**Done** (all audio is original and generated in the browser; no audio files, nothing to license)
+- **Mixer** (`src/lib/audio.ts`):
+  - master → music bus + effects bus, with smooth gain changes and a perceptual volume curve
+  - Only master reaches the speakers
+- **No sound before interaction:** one global unlock on the first tap or key press. Before it, no AudioContext is even created
+  (checked in a test). The opening keeps its own guard too
+- **Soundscapes** (`src/lib/soundscape.ts`):
+  - Start menu: the Operation Moonlight theme (deep-space ambience + slow original pad)
+  - Inside the base: a calm base ambience (life-support hum, air in the vents, a soft console ping every 7–12 s) and no melody, so children can think
+  - The opening keeps its own deep-space soundscape
+- **Interface cues**, short and soft:
+  - Before: ok, alert, soft, facility, screen, whoosh, radio static
+  - New: confirm (decision locked in), success (major chord), warning (attention, not alarm), notify, transition (quiet whoosh between major scenes)
+  - Wired: decision confirm → confirm; consequence → success / notify / warning to match the decision feedback; chapter debrief → success;
+    notifications → warning / notify / success; screen changes → transition
+- **Controls** (Settings):
+  - Mute everything
+  - Interface sounds on/off + effects volume (with a preview ping)
+  - Music & ambience on/off + music volume
+  - Every value shows a percentage; sliders are disabled while muted. All saved on the device
+- **Motion:** Reduce Motion now follows the device's "reduce motion" setting on a first visit. Inside the game it still stops animations,
+  shows text instantly and holds still frames in the opening. Big text unchanged. Skip intro unchanged
+- Settings are never overwritten with defaults before the saved ones are read (`ready` guard)
+
+**Tests:** **141 passing** (10 new)
+- `audio.test.ts` with a fake AudioContext: mute and volume curve; silent and no AudioContext before the unlock; every cue on the effects bus,
+  music on the music bus, only master to the speakers; volume and mute reach the buses, including values set before the unlock;
+  soundscape mapping and switching
+- `AudioSettings.test.tsx`: sliders and mute saved and sent to the mixer; menu theme → base ambience only after the first tap;
+  device reduced-motion → Reduce Motion on
+- tsc, eslint and build pass
+
+**Browser:** Settings shows mute, effects + volume, music + volume, and motion in Arabic (RTL sliders fill right-to-left).
+No "AudioContext was not allowed to start" warnings with sound and music saved as on.
+**Not verified:** how it actually sounds; I can't listen in this environment, so the mix needs a listen on real speakers.
+
+**Known issues / limits**
+- Volumes are a perceptual guess; please listen and adjust the defaults (music 60 %, effects 80 %)
+- Tablet and phone layout tuning is Phase 6; full journey QA is Phase 7
+
+## 2026-11-15 · Cinematic Game Experience: PHASE 4, Gameplay Polish
+Builds on Phases 1–3. Phases 5–7 are not started. Nothing pushed or deployed. Simulation, decisions, NASA data and What If Lab are unchanged.
+
+**Found before changing**
+- Resource numbers changed silently
+- Nothing told the child when a resource crossed into danger
+- The decision result never said how the day actually went
+- The base map looked the same on a 100 % and a 33 % sunlight day
+- After the opening, the briefing repeated the welcome and crew introductions
+
+**Done** (`src/lib/game/feedback.ts`, pure: the UI only animates what it computes)
+- **Animated resource indicators** (top bar):
+  - A resource that changed flashes (red ▼ / green ▲) and shows the amount (e.g. "▼ −78")
+  - A critical bar pulses
+- **Mission notifications:** short stacked cards under the top bar that appear only when something crosses a line:
+  - energy below the reserve ("انتبه! مخزون الطاقة بدأ ينخفض.") or critical, and back above the reserve
+  - water low or **critical** ("تحذير: الماء منخفض جدًا!")
+  - recycler fault / repaired
+  - life support strained
+  - storm (training scenario); safety steps complete
+  - systems switched off to save power
+  - They never repeat for the same state, can be closed (✕), leave after ~5 s, play a matching sound (if on) and are read by screen readers
+- **Decision feedback** on the consequence screen, judged only on the day the decision shaped:
+  - ✨ "قرار موفّق!" ("Well-chosen!"): no shortage
+  - ⚖️ "قرار له ثمن" ("A decision with a cost"): the base switched systems off, **or** the battery fell below the reserve
+  - ⚠️ "القاعدة واجهت صعوبة" ("The base struggled"): life support was underpowered
+  - It appears with a small burst after the base changes from "before" to "now", next to SUHAIL's reaction (Phase 2)
+- **Environmental feedback from NASA data:** the base map takes the day's sunlit fraction. Less light means the low Sun dims and sinks and
+  the landscape darkens, while the base lights stay on. Used in Mission Control (today's forecast), day screens, the consequence screen
+  (yesterday's light → today's) and chapter debriefs
+- **Shorter path into play:** after the full cinematic opening, the Mission Briefing starts at "The four resources", because the opening
+  already welcomed the child and introduced the crew. Skipping the opening, or "Crew & base" in the menu, still shows the whole briefing
+
+**Fixed while checking:** farming at full power was first labelled "قرار موفّق!" although it drained the battery below the reserve.
+It is now "قرار له ثمن" with the reason (e.g. "البطارية نزلت تحت الاحتياطي (101 ك.و.س)")
+
+**Tests:** **131 passing** (11 new)
+- `feedback.test.ts`: change thresholds; notifications for energy, water critical, recycler, storm and safety; no repeats; bilingual;
+  decision feedback matches the day log on all 27 paths; farm-full is not a "success"
+- `Feedback.test.tsx`: the top bar flashes, shows and dismisses the energy notification; the map darkens with less light
+- tsc, eslint and build pass
+
+**Browser, seen by eye (AR):** Mission Control at 50 % light (dimmer map, base "Warning", Menu button); after "farm at full power":
+the energy notification, ▼/▲ flashes, and the "قرار له ثمن" banner
+
+**Known issues / limits**
+- At 125 % Windows display scaling the browser-pane screenshots cut off the right edge; the page itself measured with no overflow
+- On phones a notification covers part of the top bar for ~5 s (it can be closed)
+- Volume sliders and audio polish are Phase 5; tablet layout tuning is Phase 6
+
+## 2026-11-15 · Cinematic Game Experience: PHASE 3, Main Menu & Navigation
+Builds on Phases 1–2. Phases 4–7 are not started. Nothing pushed or deployed.
+
+**Found before changing**
+- The start menu looked like a website: a row of small header buttons above a picture
+- There was no way back to the menu from inside the game
+- "Start Mission" silently erased a saved mission
+
+**Done**
+- **Cinematic start menu** (`src/components/screens/Intro.tsx`, same `Splash` props):
+  - The SELENE-1 lunar scene is the background, with a slow camera drift (40 s) and lunar dust
+  - Big SPACE COMMANDER / OPERATION MOONLIGHT title, on the right in Arabic
+  - Game-style menu, one item per line, rising in one after another. **Start Mission** is the big orange primary and gets focus
+  - **SUHAIL reacts to the item in focus** and explains it in one line, with a matching expression: welcome → happy, Story → curious,
+    Crew & base and About the Science → explaining, Continue → encouraging, Settings → idle. He keeps his welcome until the child moves
+  - The team's mission poster stays: beside the menu on wide screens, below it on phones
+  - Sound and language as small icons; credit and version in the footer
+- **Keyboard / touch / mouse:** ↑/↓ move through the menu (wrapping), Home/End jump to the ends, Enter/Space activate; hover and tap work the same
+- **Saved mission:** "Continue my mission · Day N" becomes the first, primary item with "Welcome back". Start Mission now asks first
+  ("A new mission … replaces your saved mission (Day N). Are you sure?"); "Back" keeps the save
+- **In-game navigation:** a 🏠 **Menu** button in the game toolbar (lunar base tour, every mission screen, outcome, What If Lab, report).
+  The mission is saved, so the menu offers to continue on the same day
+
+**Fixed while checking**
+- **Hydration mismatch** (a real console error): the lunar dust positions used `Math.sin`, which gave slightly different decimals on the
+  server and in the browser. It now uses an integer generator with rounded values. The page loads with no React warnings
+- A hidden button in the closed confirm dialog took the initial focus away from Start Mission
+- The background was too dark to see the scene; the darkening is lighter and the side shade is desktop-only
+
+**Files:** rewritten `src/components/screens/Intro.tsx`. Modified: `Hud.tsx` (Menu button), `mission/MissionHUD.tsx`,
+`mission/MissionBriefing.tsx`, `Game.tsx` (`goMenu`), `cinematic/Backdrops.tsx` (shared `Dust`, moved from the cinematic),
+`cinematic/CinematicIntro.tsx`, `app/globals.css` (menu drift). New test: `screens/StartMenu.test.tsx`
+
+**Tests:** **120 passing** (5 new): menu order and focus; ↑/↓/Home with SUHAIL's hint and expression; Arabic + story; saved mission →
+Continue first, Start asks, Back keeps it, Yes starts fresh; in-game Menu → Continue resumes the same day. tsc, eslint and build pass.
+Browser, seen by eye: AR at 800 px and 1280 px, keyboard focus with SUHAIL's NASA hint, 375 px with no horizontal scroll
+
+**Known issues / limits**
+- On phones the menu is long; the poster sits below it (scroll to see)
+- Sound volume sliders are Phase 5
+
+## 2026-11-15 · Cinematic Game Experience: PHASE 2, Character Experience
+Builds on Phase 1. Phases 3–7 are not started. Nothing pushed or deployed.
+
+**Why a vector SUHAIL:** the team's SUHAIL art is 130×136 px (blurry when large) and its eyes are baked into the picture, so it cannot
+change expression. `SuhailRobot` redraws the **approved identity**: small floating white robot, rounded body, dark glossy face display,
+bright cyan digital eyes, orange details (ear discs, belt, hands). The team art is unchanged and still used on the start screen,
+in the briefing and as `SuhailPortrait`.
+
+**Done**
+- **8 expressions** (`src/components/SuhailRobot.tsx`), each with its own eyes, arms, head tilt, accent colour and a small indicator:
+  - idle: blinks
+  - curious: one eye bigger, tilt, "?"
+  - thinking: looks up, hand to chin, rising dots
+  - explaining: points at a small hologram
+  - warning: wide alert eyes, raised arms, pulsing "!" and ear lights. Designed to look alert, not angry
+  - happy: smiling arcs, waving, sparkle
+  - encouraging: wink, wave, green sparkle
+  - concerned: raised inner brows, arms drawn in, a small drop
+  - Always floating. Pure SVG + CSS; Reduce Motion stops every animation
+- **Context-aware companion** (`src/lib/game/companion.ts`, pure): reads the real state and dialogue rules and returns an expression and a
+  short reaction. It uses the brief's lines: healthy → happy "ممتاز يا قائد! القاعدة تعمل بكفاءة."; low energy → warning
+  "انتبه! مخزون الطاقة بدأ ينخفض."; after any decision → explaining "قرار مهم! دعنا نراقب تأثيره.". Also: water → concerned,
+  crops → concerned, locked options → thinking, recovery or crew sheltered → encouraging, storm before safety → warning
+- Where SUHAIL now reacts:
+  - Opening: happy → explaining → curious while welcoming; explaining → encouraging at the commander moment
+  - Decision room: curious, or worried when something is wrong. He asks; the child decides
+  - Consequence screen: "important decision!" first, then his reaction to the new base state
+  - Day screens and chapter debriefs: expression from the state
+  - Mission intros: explaining
+- `SuhailSays` shows the mood name ("سهيل · تنبيه") and tints the bubble. The old `mood="normal"` still works (maps to idle)
+- **Crew reactions:** in every crew report the portrait gets a ring in the status colour (pulsing when critical) and a small face (🙂 😟 😮 😄)
+- Crew introductions were added in Phase 1 (four spotlights). Arabic lines now use «» quotation marks
+
+**Fixed while checking**
+- The chapter debrief repeated SUHAIL's line twice; now shown once
+- The first warning face looked angry, and the thinking/concerned hands merged into one orange blob; both were redrawn
+
+**Tests:** **115 passing** (11 new)
+- `companion.test.ts`: healthy/low-energy/after-decision/storm/recovery cues with the brief's lines; every rule has an expression; on all 27
+  paths × every moment the cue is valid and bilingual, and **never names an option for the child**
+- `SuhailRobot.test.tsx`: 8 distinct expressions, blink, decorative-only, mood label and the "normal" alias
+- tsc, eslint and build pass
+
+**Browser (seen by eye this time):** all 8 expressions; the opening's SUHAIL scene (happy → explaining) and crew scene; the chapter-1 debrief
+after "farm at full power" (SUHAIL warning, Adam's ring on warning)
+
+**Known issues / limits**
+- The vector SUHAIL is our redraw of the approved character; the team should confirm it matches their identity board
+- Crew portraits are the team's still art; their reaction is the ring and face badge, not animated faces
+- Volume sliders are Phase 5; layout tuning for tablet is Phase 6
+
+## 2026-11-15 · Cinematic Game Experience: PHASE 1, Cinematic Opening
+Built on V6. Only Phase 1 is done; Phases 2–7 are not started. The game version number has not been changed.
+
+**Inspected before changing (V6 findings)**
+- The opening played only after the child pressed Start, not on launch
+- Its "Commander" scene was a long reading page, and its "Explore your base" scene repeated the Lunar Base tour that follows
+- A Sound/Music setting saved from a previous visit could try to play before the child touched anything
+- Settings load after the first render, so a "first launch" check must wait for them (new `ready` flag)
+
+**Done: six scenes (~60–90 s, WONDER → RESPONSIBILITY → DISCOVERY)**
+1. **Deep space (8 s):** dark → stars → Earth from lunar orbit → the Moon fills the foreground. The Orbit Star logo + SPACE COMMANDER appear,
+   then OPERATION MOONLIGHT. A radio blip plays if sound is on
+2. **Approaching the Moon (10 s):** a slow camera push to SELENE-1 (solar arrays, antenna beacon, habitats with lit windows, greenhouse dome,
+   rover, Earth in the distance) with drifting lunar dust. Title: SELENE-1 · lunar research outpost · near the south pole
+3. **The mission alert (10 s):** a red signal sweep and pulsing antenna rings, then a holographic transmission from (fictional) Mission Control:
+   "the base needs a new commander to watch over its survival systems: Energy · Water · Air · Food". It ends on a question
+4. **SUHAIL:** he glides in and floats with a gentle tilt, pulsing on each new line. Three lines from the approved script
+5. **The crew:** Layan, Adam, Mira and Rashid step into a light of their own colour, each with a portrait, specialty, facility and one line in
+   their own voice. Each one holds about 3.2 s (manual with Reduce Motion), and the names can be tapped
+6. **The commander moment:** the camera rises over the base and SUHAIL gives the two responsibility lines. Then "Are you ready to lead the mission?"
+   with **Start Mission** (→ the existing game, Mission Briefing) and **Discover the story** (story dialog with its own Start Mission)
+
+**Behaviour**
+- Starts by itself on the first launch on a device. **Skip** (button or Esc) goes to the start menu. Both remember the choice (`introDone`)
+- "Replay intro" on the menu still works
+- **No sound before the first tap or key press**, even if Sound/Music were left on. Sound is otherwise optional and invited by a button,
+  never started automatically. The audio is original and procedural
+- Reduce Motion: still frames, instant subtitles, shorter holds, no auto crew rotation. Enter / arrow keys continue the self-running scenes.
+  All buttons are at least 44 px. Arabic (RTL) and English
+- The rest of the game is unchanged: simulation, decisions, NASA data, What If Lab, journey
+
+**Files**
+- Rewritten: `src/components/cinematic/CinematicIntro.tsx`, `src/lib/cinematicScript.ts`
+- Modified: `src/components/cinematic/DialogueBox.tsx` (`audio` flag), `src/components/settings.tsx` (`ready`), `src/components/Game.tsx`
+  (auto-start, `startNewMission`, skip → menu), `src/app/globals.css` (8 s deep-space timeline and new scene animations),
+  `src/components/Game.e2e.test.tsx` (new first-launch order)
+- New: `src/components/cinematic/CinematicIntro.test.tsx`
+- Removed from the opening: the long "Commander" page, "Explore your base" and "Mission Day 1" scenes. The Lunar Base tour in the journey covers exploring
+
+**Tests**
+- **104 passing** (7 new): script matches the brief; auto-start on first launch; no auto-start for returning players; skip by button and by Esc;
+  a full six-scene playthrough with Start Mission → Mission Briefing (EN); Discover the story → Start Mission (AR, RTL); no audio before
+  interaction, audio after a tap. tsc, eslint and build pass
+- Browser (AR, 375 px): auto-start on launch; deep space auto-advances to the approach after ~8 s; no horizontal page scroll in any scene;
+  Start Mission opens the Mission Briefing; no console errors
+
+**Known issues / limits**
+- The browser pane was hidden during the check, so the scenes were checked through the page, not by eye; the motion quality needs a visual review
+- At 375 px the crew's sideways slide overflowed by ~25 px; it was changed to a vertical rise and re-measured clean
+- SUHAIL is still the approved still artwork (floating, pulsing); eye and gesture expressions are Phase 2
+- No volume sliders yet (only on/off for sound and music); that is Phase 5
+- The Mission Briefing after the opening repeats some of what the opening shows (welcome, crew); trimming it is a Phase 3/4 decision
+
+**Performance:** pure CSS/SVG, no new dependencies or image files. Every scene uses only transform/opacity animations plus ~22 dust motes
+
 ## 2026-11-15 · V0.7 (prompt label): Complete Mission Experience
 Comes after the V5 release. The game version number has not been changed. The simulation logic was not replaced.
 

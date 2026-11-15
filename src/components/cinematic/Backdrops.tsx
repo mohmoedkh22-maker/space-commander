@@ -303,3 +303,34 @@ export function CommandCenter({ labels, animateOn = false, dim = false }: { labe
     </svg>
   );
 }
+
+/** Deterministic dust motes: integer LCG + rounding, so the server and every browser render identical values (no hydration mismatch). */
+const DUST = (() => {
+  let seed = 42;
+  const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const q = (n: number, d = 2) => Number(n.toFixed(d));
+  return Array.from({ length: 22 }, () => ({ x: q(r() * 100), y: q(30 + r() * 70), s: q(1 + r() * 2.5), d: q(7 + r() * 7), delay: q(-r() * 10), o: q(0.25 + r() * 0.45) }));
+})();
+
+export function Dust() {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-[5]" aria-hidden>
+      {DUST.map((p, i) => (
+        <span
+          key={i}
+          className="dust"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: `${p.s}px`,
+            height: `${p.s}px`,
+            ["--d" as string]: `${p.d}s`,
+            ["--delay" as string]: `${p.delay}s`,
+            ["--o" as string]: String(p.o),
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+

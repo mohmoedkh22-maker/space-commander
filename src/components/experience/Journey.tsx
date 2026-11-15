@@ -15,16 +15,16 @@ import { CREW, t } from "@/lib/i18n";
 import { Portrait } from "../Portrait";
 import { useSettings } from "../settings";
 
-const LEVEL_STYLE: Record<ReportLevel, { color: string; label: ReturnType<typeof t>; sym: string }> = {
-  ok: { color: "#43d9a3", label: t("مستقر", "Stable"), sym: "✓" },
-  warn: { color: "#ffad4d", label: t("تحذير", "Warning"), sym: "!" },
-  crit: { color: "#ff6b6b", label: t("حرج", "Critical"), sym: "‼" },
-  recovery: { color: "#5be3a0", label: t("تعافٍ", "Recovering"), sym: "↗" },
+const LEVEL_STYLE: Record<ReportLevel, { color: string; label: ReturnType<typeof t>; sym: string; face: string }> = {
+  ok: { color: "#43d9a3", label: t("مستقر", "Stable"), sym: "✓", face: "🙂" },
+  warn: { color: "#ffad4d", label: t("تحذير", "Warning"), sym: "!", face: "😟" },
+  crit: { color: "#ff6b6b", label: t("حرج", "Critical"), sym: "‼", face: "😮" },
+  recovery: { color: "#5be3a0", label: t("تعافٍ", "Recovering"), sym: "↗", face: "😄" },
 };
 
 /** The four crew members report on their own systems, based on the real state. */
 export function CrewReports({ state, title }: { state: GameState; title?: ReturnType<typeof t> }) {
-  const { tx } = useSettings();
+  const { tx, lang } = useSettings();
   return (
     <section className="panel p-4" aria-label={tx(title ?? t("تقارير الطاقم", "Crew reports"))}>
       <h2 className="mb-3 font-display text-sm font-bold tracking-wider text-holo">👩‍🚀 {tx(title ?? t("تقارير الطاقم", "Crew reports"))}</h2>
@@ -33,7 +33,15 @@ export function CrewReports({ state, title }: { state: GameState; title?: Return
           const lv = LEVEL_STYLE[c.level];
           return (
             <li key={c.who} className="flex items-start gap-3 rounded-xl border bg-space/50 p-2" style={{ borderColor: lv.color + "66" }}>
-              <Portrait id={c.who} size={48} />
+              {/* the crew member reacts: a ring in the status colour (pulsing when critical) and a small face */}
+              <span className="relative shrink-0" data-crew-reaction={c.level}>
+                <span className={`block rounded-full border-2 p-0.5 ${c.level === "crit" ? "anim-glow" : ""}`} style={{ borderColor: lv.color }}>
+                  <Portrait id={c.who} size={48} />
+                </span>
+                <span className="sb-pop absolute -bottom-1 -end-1 grid size-6 place-items-center rounded-full border border-space bg-midnight text-sm" aria-hidden>
+                  {lv.face}
+                </span>
+              </span>
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-x-2 text-sm">
                   <b style={{ color: CREW[c.who].color }}>{tx(CREW[c.who].name)}</b>
@@ -42,7 +50,7 @@ export function CrewReports({ state, title }: { state: GameState; title?: Return
                     {lv.sym} {tx(lv.label)}
                   </span>
                 </p>
-                <p className="mt-1 text-sm leading-relaxed">“{tx(c.text)}”</p>
+                <p className="mt-1 text-sm leading-relaxed">{lang === "ar" ? `«${tx(c.text)}»` : `“${tx(c.text)}”`}</p>
               </div>
             </li>
           );
@@ -75,7 +83,7 @@ export function BaseFrame({ state, children }: { state: GameState; children: Rea
   const c = baseCondition(state);
   const color = BASE_CONDITION_COLOR[c];
   return (
-    <div className="panel relative !p-2" style={{ borderColor: color + "aa", boxShadow: c === "critical" ? `0 0 24px ${color}55` : undefined }} data-base-condition={c}>
+    <div className="panel relative mx-auto w-full max-w-xl !p-2 lg:max-w-none" style={{ borderColor: color + "aa", boxShadow: c === "critical" ? `0 0 24px ${color}55` : undefined }} data-base-condition={c}>
       <div className="absolute end-3 top-3 z-10">
         <BaseConditionChip state={state} />
       </div>

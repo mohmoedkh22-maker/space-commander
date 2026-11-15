@@ -2,46 +2,48 @@
 "use client";
 import { useSettings } from "./settings";
 import type { T } from "@/lib/game/types";
+import { EXPRESSION_ACCENT, SuhailRobot, type SuhailExpression } from "./SuhailRobot";
 
-export type Mood = "normal" | "curious" | "thinking" | "warning" | "happy";
+/** SUHAIL's mood = one of the eight expressions ("normal" is kept as an alias of "idle" for older callers). */
+export type Mood = SuhailExpression | "normal";
+export const toExpression = (m: Mood): SuhailExpression => (m === "normal" ? "idle" : m);
 
-const BADGE: Partial<Record<Mood, { sym: string; bg: string }>> = {
-  curious: { sym: "?", bg: "#50e3f0" },
-  thinking: { sym: "…", bg: "#8c78ff" },
-  warning: { sym: "!", bg: "#ff6b6b" },
-  happy: { sym: "★", bg: "#ffad4d" },
+const LABEL: Record<SuhailExpression, T> = {
+  idle: { ar: "سهيل", en: "SUHAIL" },
+  curious: { ar: "سهيل · فضولي", en: "SUHAIL · curious" },
+  thinking: { ar: "سهيل · يفكّر", en: "SUHAIL · thinking" },
+  explaining: { ar: "سهيل · يشرح", en: "SUHAIL · explaining" },
+  warning: { ar: "سهيل · تنبيه", en: "SUHAIL · warning" },
+  happy: { ar: "سهيل · سعيد", en: "SUHAIL · happy" },
+  encouraging: { ar: "سهيل · يشجّعك", en: "SUHAIL · encouraging" },
+  concerned: { ar: "سهيل · قلق", en: "SUHAIL · concerned" },
 };
 
-/** SUHAIL — art from the team's identity board (Cosmic Discovery). A small badge shows the mood. */
+/** The expressive SUHAIL (vector). Decorative; his words are always shown as text. */
 export function SuhailBot({ mood = "normal", size = 96 }: { mood?: Mood; size?: number }) {
-  const b = BADGE[mood];
-  const ring = mood === "warning" ? "#ff6b6b" : "#50e3f0";
+  return <SuhailRobot expression={toExpression(mood)} size={size} />;
+}
+
+/** The team's original SUHAIL artwork (identity board), for portrait moments. */
+export function SuhailPortrait({ size = 96 }: { size?: number }) {
   return (
-    <span className="anim-float relative inline-block shrink-0" style={{ width: size, height: size }} aria-hidden>
-      <span
-        className="block h-full w-full overflow-hidden rounded-full border-[3px] bg-midnight"
-        style={{ borderColor: ring, boxShadow: `0 0 22px ${ring}66` }}
-      >
-        <img src="/art/suhail.png" alt="" width={size} height={size} className="h-full w-full scale-125 object-cover object-[50%_25%]" />
-      </span>
-      {b && (
-        <span
-          className="absolute -top-1 -end-1 grid place-items-center rounded-full border-2 border-space font-display font-bold text-space"
-          style={{ width: size * 0.34, height: size * 0.34, background: b.bg, fontSize: size * 0.2 }}
-        >
-          {b.sym}
-        </span>
-      )}
+    <span className="relative inline-block shrink-0 overflow-hidden rounded-full border-[3px] border-holo bg-midnight" style={{ width: size, height: size }} aria-hidden>
+      <img src="/art/suhail.png" alt="" width={size} height={size} className="h-full w-full scale-125 object-cover object-[50%_25%]" />
     </span>
   );
 }
+
 export function SuhailSays({ text, mood = "normal", compact = false }: { text: T; mood?: Mood; compact?: boolean }) {
   const { tx } = useSettings();
+  const e = toExpression(mood);
+  const accent = EXPRESSION_ACCENT[e];
   return (
-    <div className="flex items-end gap-3 anim-rise" role="status" aria-live="polite">
-      <SuhailBot mood={mood} size={compact ? 64 : 88} />
-      <div className="panel relative px-4 py-3 text-base leading-relaxed sm:text-lg" style={{ borderColor: "#50e3f055" }}>
-        <span className="mb-1 block font-display text-xs font-bold tracking-widest text-holo">SUHAIL · سهيل</span>
+    <div className="flex items-end gap-3 anim-rise" role="status" aria-live="polite" data-suhail-mood={e}>
+      <SuhailBot mood={e} size={compact ? 64 : 88} />
+      <div className="panel relative px-4 py-3 text-base leading-relaxed sm:text-lg" style={{ borderColor: accent + "66" }}>
+        <span className="mb-1 block font-display text-xs font-bold tracking-widest" style={{ color: accent }}>
+          {tx(LABEL[e])}
+        </span>
         {tx(text)}
       </div>
     </div>

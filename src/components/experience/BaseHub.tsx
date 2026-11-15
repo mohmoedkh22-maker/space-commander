@@ -21,6 +21,7 @@ import { useSettings } from "../settings";
 import { Button } from "../ui";
 import { SpeakerAvatar, speakerName } from "./ScriptDialogue";
 import { BaseFrame } from "./Journey";
+import { missionDayLight } from "@/lib/game/engine";
 
 type InspectId = FacilityInspection["id"];
 const LEVEL = { ok: "#43d9a3", warn: "#ffad4d", crit: "#ff6b6b" } as const;
@@ -209,6 +210,7 @@ export function BaseHub({
               storm={s.flags.storm}
               alert={events[0]?.facility ?? null}
               energyPct={(s.resources.energy / BATTERY_CAP_KWH) * 100}
+              light={missionDayLight(s.day).sunlitFraction}
             />
           </BaseFrame>
           <nav aria-label={tx(t("مرافق القاعدة", "Base facilities"))}>
@@ -294,7 +296,7 @@ export function BaseHub({
       </div>
 
       {/* investigation progress */}
-      <div className="sticky bottom-0 z-10 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-holo/30 bg-space/90 px-4 py-3 backdrop-blur">
+      <div className="sticky bottom-0 z-10 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-holo/30 bg-space/90 px-4 py-3 backdrop-blur [@media(max-height:500px)]:static">
         <p className="text-sm sm:text-base" aria-live="polite">
           📝 {tx(t("الأدلة التي وجدتها", "Clues found"))}: <b dir="ltr">{foundHere}/{missionClues.length}</b>
           {foundHere < need && ` — ${tx(t(`اجمع ${need} على الأقل قبل القرار`, `find at least ${need} before deciding`))}`}

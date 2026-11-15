@@ -12,8 +12,9 @@ import { WhyPanel } from "../mission/WhyPanel";
 import { LunarBase, facilityStatus } from "../LunarBase";
 import { useSettings } from "../settings";
 import { SuhailSays, type Mood } from "../Suhail";
-import { Button, CrewSays, Delta, Panel, ScreenTitle } from "../ui";
+import { Button, CrewSays, Delta, Panel, ScreenTitle, StickyAction } from "../ui";
 import { BaseFrame, CrewReports } from "../experience/Journey";
+import { companionCue } from "@/lib/game/companion";
 import { BATTERY_CAP_KWH } from "@/lib/game/config";
 
 /** A fixed story line followed by SUHAIL's state-based line (if any). */
@@ -161,13 +162,14 @@ export function DayScreen({ day, before, after, onNext }: { day: number; before:
   const { tx } = useSettings();
   const info = DAY_LINES[day] ?? DAY_LINES[1];
   const log = after.log[after.log.length - 1];
+  const cue = companionCue(after, "after-decision");
   return (
     <main className="mx-auto max-w-5xl px-4 py-6">
       <ScreenTitle kicker={`${tx(UI.day)} ${day} / 7`} title={tx(info.title)} />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
           <BaseFrame state={after}>
-            <LunarBase status={facilityStatus(after)} storm={after.flags.storm} energyPct={(after.resources.energy / BATTERY_CAP_KWH) * 100} />
+            <LunarBase status={facilityStatus(after)} storm={after.flags.storm} energyPct={(after.resources.energy / BATTERY_CAP_KWH) * 100} light={log?.sunlitFraction} />
           </BaseFrame>
           {day > 1 && <CrewReports state={after} />}
         </div>
@@ -175,10 +177,12 @@ export function DayScreen({ day, before, after, onNext }: { day: number; before:
           {log && <DayResultCard log={log} />}
           {day > 1 && <DeltaTable before={before} after={after} />}
           {log && day > 1 && <WhyPanel items={explainDay(log, before, after)} />}
-          <SuhailSays mood={info.mood} text={withContext(info.suhail, day > 1 ? suhailLines(after, "after-decision", 1)[0]?.text : undefined)} />
-          <Button onClick={onNext} autoFocus>
-            {tx(UI.continue)}
-          </Button>
+          <SuhailSays mood={day > 1 && cue.ruleId ? cue.expression : info.mood} text={withContext(info.suhail, day > 1 ? suhailLines(after, "after-decision", 1)[0]?.text : undefined)} />
+          <StickyAction className="lg:justify-start">
+            <Button onClick={onNext} autoFocus className="min-w-[min(100%,280px)]">
+              {tx(UI.continue)}
+            </Button>
+          </StickyAction>
         </div>
       </div>
     </main>

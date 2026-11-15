@@ -1,54 +1,51 @@
-/* eslint-disable @next/next/no-img-element -- static export, small local art */
 "use client";
+// PHASE 1 — CINEMATIC OPENING (Operation Moonlight · Cosmic Discovery)
+// Six scenes, ~60–90 s: deep space → approaching the Moon → the mission alert → SUHAIL → the crew → the commander moment.
+// Skippable at any time (button or Esc), subtitles always on, Reduce Motion shows still frames,
+// and no sound plays until the child has interacted with the page.
 import { useCallback, useEffect, useState } from "react";
 import { radioStatic, sfx, startAmbience, startMusic, stopAmbience, stopMusic } from "@/lib/audio";
 import {
+  ALERT,
   CINE_UI,
-  EXPLORE,
-  RESPONSIBILITIES,
+  COMMANDER_LINES,
+  CREW_INTRO,
+  CREW_SPOTLIGHT_MS,
+  READY_QUESTION,
   SCENES,
+  SCENE_AUTO_MS,
+  SCENE_AUTO_REDUCED_MS,
   SCENE_NAMES,
-  SUHAIL_DAY1,
+  STORY,
   SUHAIL_WELCOME,
-  type ExploreId,
   type SceneId,
 } from "@/lib/cinematicScript";
-import type { CrewId } from "@/lib/game/types";
 import { CREW, UI, t } from "@/lib/i18n";
-import { RESOURCES, RESOURCE_ORDER } from "@/lib/mission";
+import { FACILITIES } from "@/lib/mission";
 import { OrbitStarLogo } from "../Brand";
-import { LunarBase, type FacilityId } from "../LunarBase";
+import { LunarBase } from "../LunarBase";
 import { Portrait } from "../Portrait";
+import { SuhailRobot, type SuhailExpression } from "../SuhailRobot";
 import { useSettings } from "../settings";
-import { Button } from "../ui";
-import { CommandCenter, DeepSpace, LunarVista, StarField } from "./Backdrops";
+import { Button, Modal } from "../ui";
+import { DeepSpace, Dust, LunarVista, StarField } from "./Backdrops";
 import { DialogueBox } from "./DialogueBox";
 import { SceneTransition } from "./SceneTransition";
 
-/** Auto-advancing scenes (ms). The child can always press Continue to move on sooner. */
-const AUTO: Partial<Record<SceneId, number>> = { space: 11000, base: 13000, command: 8500 };
-const AUTO_REDUCED = 4000;
+/** SUHAIL glides in and floats; his expression follows the line he is saying (Phase 2). */
+const WELCOME_FACES: SuhailExpression[] = ["happy", "explaining", "curious"];
+const COMMANDER_FACES: SuhailExpression[] = ["explaining", "encouraging"];
 
-/** SUHAIL on the main holographic display; re-pulses each time a new line starts. */
-function SuhailHolo({ pulse, size = "min(34vh, 60vw)" }: { pulse: number; size?: string }) {
+function SuhailFloating({ expression, size = "min(30vh, 52vw)" }: { expression: SuhailExpression; size?: string }) {
   return (
-    <div className="c4-holo flex flex-col items-center" aria-hidden>
-      <div
-        key={pulse}
-        className="speaking relative overflow-hidden rounded-[32px] border-2 border-holo/80 bg-[#0b1a3a]"
-        style={{ width: size, height: size }}
-      >
-        <img src="/art/suhail.png" alt="" className="h-full w-full object-cover opacity-95" />
-        <div className="scanlines absolute inset-0" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#4fe5ff33] to-transparent" />
-      </div>
-      <div className="mt-1 h-3 w-2/3 rounded-full bg-holo/50 blur-md" />
+    <div className="suhail-arrive flex flex-col items-center" aria-hidden>
+      <SuhailRobot key={expression} expression={expression} size={size} />
     </div>
   );
 }
 
+/* ---------------- SCENE 1 — DEEP SPACE ---------------- */
 function SceneSpace() {
-  const { tx } = useSettings();
   return (
     <SceneTransition sceneKey="space" backdrop={<DeepSpace />}>
       <div className="c1-title flex h-full flex-col items-center justify-center px-4 text-center">
@@ -56,299 +53,283 @@ function SceneSpace() {
           <div className="orbit-spin absolute -inset-10 rounded-full border-2 border-holo/40 [border-top-color:#ffad4d]" aria-hidden />
           <OrbitStarLogo size={110} />
         </div>
-        <h1 className="mt-6 font-display text-5xl font-bold tracking-tight drop-shadow-[0_4px_30px_#4fe5ff88] sm:text-7xl lg:text-8xl">SPACE COMMANDER</h1>
-        <p className="mt-3 font-display text-lg font-bold tracking-[0.45em] text-holo sm:text-2xl">OPERATION MOONLIGHT</p>
-        <p className="mt-2 text-lg text-lunar/80">{tx(UI.tagline)}</p>
+        <h1 className="mt-6 font-display text-5xl font-bold tracking-tight drop-shadow-[0_4px_30px_#4fe5ff88] sm:text-7xl lg:text-8xl" dir="ltr">
+          SPACE COMMANDER
+        </h1>
+        {/* QA: kept right under the title (over the Moon it was hard to read) */}
+        <p className="c1-sub mt-3 font-display text-lg font-bold tracking-[0.45em] text-holo drop-shadow-[0_2px_10px_#000] sm:text-2xl" dir="ltr">
+          OPERATION MOONLIGHT
+        </p>
       </div>
     </SceneTransition>
   );
 }
 
-function SceneBase() {
+/* ---------------- SCENE 2 — APPROACHING THE MOON ---------------- */
+function SceneApproach() {
   const { tx } = useSettings();
   return (
-    <SceneTransition sceneKey="base" backdrop={<LunarVista />} camera="approach">
+    <SceneTransition sceneKey="approach" backdrop={<LunarVista />} camera="approach">
+      <Dust />
       <div className="flex h-full items-end px-6 pb-28 sm:px-16">
-        <div className="anim-rise" style={{ animationDelay: "2.2s" }}>
-          <p className="font-display text-6xl font-bold tracking-tight drop-shadow-[0_4px_24px_#000] sm:text-8xl">SELENE-1</p>
-          <p className="mt-1 font-display text-lg font-bold tracking-[0.35em] text-holo drop-shadow-[0_2px_12px_#000] sm:text-2xl">LUNAR RESEARCH OUTPOST</p>
-          <p className="mt-2 text-lg text-lunar/90 drop-shadow-[0_2px_10px_#000]">
-            {tx(CINE_UI.outpost)} · {tx(CINE_UI.southPole)}
+        <div className="anim-rise" style={{ animationDelay: "3s" }}>
+          <p className="font-display text-6xl font-bold tracking-tight drop-shadow-[0_4px_24px_#000] sm:text-8xl" dir="ltr">
+            SELENE-1
           </p>
+          <p className="mt-1 font-display text-lg font-bold tracking-[0.3em] text-holo drop-shadow-[0_2px_12px_#000] sm:text-2xl">{tx(CINE_UI.outpost)}</p>
+          <p className="mt-2 text-lg text-lunar/90 drop-shadow-[0_2px_10px_#000]">{tx(CINE_UI.southPole)}</p>
         </div>
       </div>
     </SceneTransition>
   );
 }
 
-function SceneCommand({ labels }: { labels: string[] }) {
-  const { tx, sound } = useSettings();
+/* ---------------- SCENE 3 — THE MISSION ALERT ---------------- */
+function SceneAlert({ audio }: { audio: boolean }) {
+  const { tx } = useSettings();
   useEffect(() => {
-    if (!sound) return;
-    const ids = [0, 1, 2, 3].map((i) => window.setTimeout(() => sfx("screen"), 1200 + i * 900));
-    ids.push(window.setTimeout(() => radioStatic(), 5600));
+    if (!audio) return;
+    radioStatic();
+    const ids = [window.setTimeout(() => sfx("alert"), 900), window.setTimeout(() => sfx("screen"), 2000)];
     return () => ids.forEach(clearTimeout);
-  }, [sound]);
+  }, [audio]);
   return (
-    <SceneTransition sceneKey="command" backdrop={<CommandCenter labels={labels} animateOn />} camera="push">
-      <div className="flex h-full flex-col items-center justify-start pt-24">
-        <p className="anim-rise font-display text-sm font-bold tracking-[0.35em] text-holo" style={{ animationDelay: "0.6s" }}>
-          {tx(t("مركز القيادة · SELENE-1", "COMMAND CENTER · SELENE-1"))}
-        </p>
-        <div className="mt-[14vh]" style={{ animation: "c4-holo 1.4s ease-out 6s both" }}>
-          <SuhailHolo pulse={0} size="min(26vh, 50vw)" />
+    <SceneTransition sceneKey="alert" backdrop={<LunarVista />} camera="push">
+      <div className="alert-sweep pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,#ff6b6b55,transparent_60%)]" aria-hidden />
+      <div className="relative flex h-full flex-col items-center justify-center px-4 pt-16">
+        <div className="relative mb-4 grid size-16 place-items-center" aria-hidden>
+          <span className="ring-out absolute inset-0 rounded-full border-2 border-coral" />
+          <span className="ring-out absolute inset-0 rounded-full border-2 border-coral" style={{ animationDelay: "1.1s" }} />
+          <span className="text-3xl">📡</span>
         </div>
+        <section
+          className="holo-in panel relative w-full max-w-2xl overflow-hidden p-5 text-center sm:p-7"
+          style={{ animationDelay: "1.6s", borderColor: "#50e3f0aa", boxShadow: "0 0 50px #50e3f033" }}
+          role="status"
+          aria-live="polite"
+        >
+          <div className="scanlines pointer-events-none absolute inset-0" aria-hidden />
+          <p className="font-display text-xs font-bold tracking-[0.35em] text-coral">● {tx(ALERT.title)}</p>
+          <p className="mt-1 font-display text-sm tracking-[0.25em] text-holo">{tx(ALERT.from)}</p>
+          <div className="mt-4 flex flex-col gap-2 text-xl leading-relaxed sm:text-2xl">
+            {ALERT.lines.map((l, i) => (
+              <p key={i} className={`line-in ${i === 2 ? "font-display text-lg font-bold tracking-wider text-solar sm:text-xl" : ""}`} style={{ animationDelay: `${2.6 + i * 1.3}s` }}>
+                {tx(l)}
+              </p>
+            ))}
+          </div>
+          <p className="line-in mt-4 text-xl font-bold text-lunar sm:text-2xl" style={{ animationDelay: "6.6s" }}>
+            {tx(ALERT.question)}
+          </p>
+        </section>
       </div>
     </SceneTransition>
   );
 }
 
-function SceneSuhail({ labels, onDone }: { labels: string[]; onDone: () => void }) {
+/* ---------------- SCENE 4 — INTRODUCING SUHAIL ---------------- */
+function SceneSuhail({ onDone, audio }: { onDone: () => void; audio: boolean }) {
   const { tx } = useSettings();
   const [line, setLine] = useState(0);
   return (
-    <SceneTransition sceneKey="suhail" backdrop={<CommandCenter labels={labels} dim />}>
-      <div className="flex h-full flex-col items-center justify-between gap-4 overflow-y-auto px-4 pb-6 pt-28 sm:pt-24">
-        <SuhailHolo pulse={line} />
+    <SceneTransition sceneKey="suhail" backdrop={<StarField />}>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,#326bff33,transparent_60%)]" aria-hidden />
+      <div className="relative flex h-full flex-col items-center justify-between gap-4 overflow-y-auto px-4 pb-6 pt-24">
+        <SuhailFloating expression={WELCOME_FACES[line] ?? "idle"} />
         <div className="w-full max-w-3xl">
-          <DialogueBox speaker={tx(t("سهيل", "SUHAIL"))} lines={SUHAIL_WELCOME} onLine={setLine} onDone={onDone} doneLabel={tx(CINE_UI.finish)} />
+          <DialogueBox speaker={tx(t("سهيل", "SUHAIL"))} lines={SUHAIL_WELCOME} onLine={setLine} onDone={onDone} doneLabel={tx(CINE_UI.meetCrew)} audio={audio} />
         </div>
       </div>
     </SceneTransition>
   );
 }
 
-function SceneCommander({ onNext }: { onNext: () => void }) {
-  const { tx } = useSettings();
+/* ---------------- SCENE 5 — MEETING THE CREW ---------------- */
+const CREW_FACILITY = { layan: "life", adam: "energy", mira: "greenhouse", rashed: "shelter" } as const;
+
+function SceneCrew({ onDone }: { onDone: () => void }) {
+  const { tx, lang, reducedMotion, beep } = useSettings();
+  const [i, setI] = useState(0);
+  const c = CREW_INTRO[i];
+  const crew = CREW[c.id];
+  const last = i === CREW_INTRO.length - 1;
+  const next = useCallback(() => {
+    beep("soft"); // beep() only sounds after a tap, which this click is
+    if (last) onDone();
+    else setI((n) => n + 1);
+  }, [last, onDone, beep]);
+  // each member holds the spotlight for a moment; Reduce Motion waits for the child
+  useEffect(() => {
+    if (reducedMotion || last) return;
+    const id = window.setTimeout(() => setI((n) => Math.min(n + 1, CREW_INTRO.length - 1)), CREW_SPOTLIGHT_MS);
+    return () => window.clearTimeout(id);
+  }, [i, last, reducedMotion]);
+  return (
+    <SceneTransition sceneKey="crew" backdrop={<StarField />}>
+      <div className="absolute inset-0 transition-colors duration-700" style={{ background: `radial-gradient(circle at 50% 40%, ${crew.color}33, transparent 62%)` }} aria-hidden />
+      <div className="relative flex h-full flex-col items-center justify-center gap-6 overflow-y-auto px-4 pb-8 pt-24">
+        <div key={c.id} className="spotlight flex w-full max-w-3xl flex-col items-center gap-5 text-center sm:flex-row sm:text-start">
+          <div className="relative shrink-0">
+            <div className="absolute -inset-4 rounded-full blur-2xl" style={{ background: crew.color + "44" }} aria-hidden />
+            <div className="relative overflow-hidden rounded-full border-4" style={{ borderColor: crew.color }}>
+              <Portrait id={c.id} size={180} />
+            </div>
+            <span className="absolute -bottom-2 end-0 grid size-14 place-items-center rounded-full border-2 bg-space text-2xl" style={{ borderColor: crew.color }} aria-hidden>
+              {c.icon}
+            </span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <p className="font-display text-5xl font-bold sm:text-6xl" style={{ color: crew.color }}>
+              {tx(crew.name)}
+            </p>
+            <p className="font-display text-lg font-bold tracking-wider text-lunar/90">
+              {tx(crew.role)} · <span className="text-moon">{tx(FACILITIES[CREW_FACILITY[c.id]].name)}</span>
+            </p>
+            <p className="panel mt-1 px-4 py-3 text-xl leading-relaxed sm:text-2xl" style={{ borderColor: crew.color + "88" }}>
+              {lang === "ar" ? `«${tx(c.line)}»` : `“${tx(c.line)}”`}
+            </p>
+          </div>
+        </div>
+        <ol className="flex gap-2" aria-label={tx(CINE_UI.meetCrew)}>
+          {CREW_INTRO.map((x, k) => (
+            <li key={x.id}>
+              <button
+                onClick={() => setI(k)}
+                aria-current={k === i ? "step" : undefined}
+                className={`min-h-11 rounded-full border-2 px-3 text-sm ${k === i ? "font-bold" : "opacity-60"}`}
+                style={{ borderColor: CREW[x.id].color, color: CREW[x.id].color }}
+              >
+                {tx(CREW[x.id].name)}
+              </button>
+            </li>
+          ))}
+        </ol>
+        <Button size="lg" onClick={next} autoFocus className="min-w-[min(100%,260px)]">
+          {last ? tx(CINE_UI.next) : tx(CINE_UI.nextCrew)} ▶
+        </Button>
+      </div>
+    </SceneTransition>
+  );
+}
+
+/* ---------------- SCENE 6 — THE COMMANDER MOMENT ---------------- */
+function SceneCommander({ onStart, audio }: { onStart: () => void; audio: boolean }) {
+  const { tx, beep } = useSettings();
+  const [ready, setReady] = useState(false);
+  const [line, setLine] = useState(0);
+  const [story, setStory] = useState(false);
+  const all = { energy: "ok", life: "ok", greenhouse: "ok", water: "ok", shelter: "ok", command: "ok" } as const;
   return (
     <SceneTransition sceneKey="commander" backdrop={<StarField />}>
-      <div className="h-full overflow-y-auto px-4 pb-10 pt-28 sm:pt-24">
-        <div className="mx-auto flex max-w-5xl flex-col gap-6">
-          <header className="text-center">
-            <p className="font-display text-sm font-bold tracking-[0.35em] text-holo">YOUR MISSION BEGINS HERE</p>
-            <h1 className="mt-2 font-display text-4xl font-bold sm:text-6xl">{tx(CINE_UI.missionBegins)}</h1>
-            <p className="mt-3 text-xl text-lunar/90 sm:text-2xl">{tx(CINE_UI.youAreCommander)}</p>
-          </header>
-          <section>
-            <h2 className="mb-3 font-display text-xl font-bold">{tx(CINE_UI.responsibilities)}</h2>
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {RESPONSIBILITIES.map((r, i) => (
-                <li key={i} className="stagger panel flex items-center gap-3 px-4 py-3 text-lg" style={{ ["--i" as string]: i }}>
-                  <span className="grid size-11 shrink-0 place-items-center rounded-full border-2 border-holo/60 text-xl" aria-hidden>
-                    {r.icon}
-                  </span>
-                  {tx(r.text)}
-                </li>
-              ))}
-            </ul>
-          </section>
-          <section>
-            <h2 className="mb-3 font-display text-xl font-bold">{tx(CINE_UI.resources)}</h2>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {RESOURCE_ORDER.map((id, i) => {
-                const r = RESOURCES[id];
-                return (
-                  <div
-                    key={id}
-                    className="stagger flex flex-col items-center gap-2 rounded-2xl border-2 bg-midnight/80 p-4 text-center"
-                    style={{ ["--i" as string]: i + 6, borderColor: r.color + "aa", boxShadow: `0 0 24px ${r.color}33` }}
-                  >
-                    <span className="anim-float grid size-16 place-items-center rounded-full border-2 text-3xl" style={{ borderColor: r.color, animationDelay: `${i * 0.4}s` }} aria-hidden>
-                      {r.icon}
-                    </span>
-                    <b className="text-xl" style={{ color: r.color }}>
-                      {tx(r.name)}
-                    </b>
-                    <p className="text-sm leading-relaxed text-lunar/85">{tx(r.explain)}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-          <section>
-            <h2 className="mb-3 font-display text-xl font-bold">{tx(CINE_UI.crew)}</h2>
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {(Object.keys(CREW) as CrewId[]).map((id, i) => (
-                <li key={id} className="stagger flex items-center gap-3 rounded-2xl border bg-midnight/70 p-3" style={{ ["--i" as string]: i + 10, borderColor: CREW[id].color + "88" }}>
-                  <Portrait id={id} size={52} />
-                  <span>
-                    <b className="block">{tx(CREW[id].name)}</b>
-                    <span className="text-xs" style={{ color: CREW[id].color }}>
-                      {tx(CREW[id].role)}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-          <div className="flex justify-center">
-            <Button size="lg" onClick={onNext} autoFocus className="min-w-[min(100%,320px)]">
-              {tx(CINE_UI.next)} ▶
-            </Button>
-          </div>
+      <div className="relative flex h-full flex-col items-center gap-4 overflow-y-auto px-4 pb-8 pt-24">
+        <div className="rise-over w-full max-w-3xl">
+          <LunarBase status={all} />
         </div>
-      </div>
-    </SceneTransition>
-  );
-}
-
-function SceneExplore({ onNext }: { onNext: () => void }) {
-  const { tx, beep } = useSettings();
-  const [sel, setSel] = useState<ExploreId | null>(null);
-  const [seen, setSeen] = useState<Set<ExploreId>>(new Set());
-  const pick = (id: FacilityId) => {
-    if (!EXPLORE.some((e) => e.id === id)) return;
-    const e = id as ExploreId;
-    beep("facility");
-    setSel(e);
-    setSeen((s) => new Set(s).add(e));
-  };
-  const cur = EXPLORE.find((e) => e.id === sel);
-  const done = seen.size === EXPLORE.length;
-  const status = {
-    energy: sel === "energy" ? "ok" : "dim",
-    water: sel === "water" ? "ok" : "dim",
-    greenhouse: sel === "greenhouse" ? "ok" : "dim",
-    life: sel === "life" ? "ok" : "dim",
-    shelter: "dim",
-    command: "dim",
-  } as const;
-  return (
-    <SceneTransition sceneKey="explore" backdrop={<StarField />}>
-      <div className="h-full overflow-y-auto px-4 pb-10 pt-28 sm:pt-24">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4">
-          <header className="text-center">
-            <h1 className="font-display text-3xl font-bold sm:text-5xl">{tx(CINE_UI.exploreTitle)}</h1>
-            <p className="mt-2 text-lg text-lunar/85">{tx(CINE_UI.exploreHint)}</p>
-          </header>
-          <div className="grid gap-4 lg:grid-cols-[1fr_400px]">
-            <div className="panel !p-2" style={{ borderColor: "#4fe5ff66" }}>
-              <LunarBase status={status} onSelect={pick} selected={sel} />
+        {!ready ? (
+          <div className="flex w-full max-w-3xl items-end gap-3">
+            <div className="hidden shrink-0 sm:block">
+              <SuhailFloating expression={COMMANDER_FACES[line] ?? "encouraging"} size="104px" />
             </div>
-            <div className="flex flex-col gap-3">
-              <ul className="grid grid-cols-2 gap-2">
-                {EXPLORE.map((e) => (
-                  <li key={e.id}>
-                    <button
-                      onClick={() => pick(e.id)}
-                      aria-pressed={sel === e.id}
-                      className="flex min-h-14 w-full items-center gap-2 rounded-2xl border-2 border-holo/40 px-3 py-2 text-start hover:border-holo aria-pressed:border-solar aria-pressed:bg-solar/10 aria-pressed:shadow-[0_0_20px_#ffad4d55]"
-                    >
-                      <span className={seen.has(e.id) ? "text-mint" : "text-moon"} aria-hidden>
-                        {seen.has(e.id) ? "✓" : "○"}
-                      </span>
-                      {tx(e.name)}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex items-start gap-3" aria-live="polite">
-                <span className="anim-float inline-block shrink-0 overflow-hidden rounded-full border-[3px] border-holo" style={{ width: 84, height: 84 }} aria-hidden>
-                  <img src="/art/suhail.png" alt="" className="h-full w-full scale-125 object-cover object-[50%_25%]" />
-                </span>
-                <div key={sel ?? "intro"} className="panel anim-rise flex-1 px-4 py-3 text-lg leading-relaxed" style={{ borderColor: "#4fe5ffaa" }}>
-                  <span className="mb-1 block font-display text-sm font-bold text-holo">{cur ? tx(cur.name) : tx(t("سهيل", "SUHAIL"))}</span>
-                  {cur ? tx(cur.line) : tx(CINE_UI.exploreIntro)}
-                </div>
-              </div>
-              <p className="text-center text-moon">
-                {tx(CINE_UI.explored)}: <b dir="ltr">{seen.size}/4</b>
-              </p>
-              <Button size="lg" onClick={onNext} disabled={!done}>
-                {tx(CINE_UI.backToCommand)} ▶
+            <div className="flex-1">
+              <DialogueBox
+                speaker={tx(t("سهيل", "SUHAIL"))}
+                lines={COMMANDER_LINES}
+                onLine={setLine}
+                onDone={() => {
+                  beep("ok");
+                  setReady(true);
+                }}
+                doneLabel={tx(CINE_UI.next)}
+                audio={audio}
+              />
+            </div>
+          </div>
+        ) : (
+          <section className="anim-rise flex w-full max-w-2xl flex-col items-center gap-4 text-center" aria-labelledby="ready-q">
+            <h1 id="ready-q" className="font-display text-3xl font-bold sm:text-5xl">
+              {tx(READY_QUESTION)}
+            </h1>
+            <div className="flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Button variant="solar" size="lg" onClick={onStart} autoFocus className="w-full sm:w-auto sm:min-w-[260px]">
+                🚀 {tx(CINE_UI.startMission)}
+              </Button>
+              <Button variant="ghost" size="lg" onClick={() => setStory(true)} aria-haspopup="dialog" className="w-full sm:w-auto">
+                📖 {tx(CINE_UI.discoverStory)}
               </Button>
             </div>
-          </div>
-        </div>
+          </section>
+        )}
       </div>
-    </SceneTransition>
-  );
-}
-
-function SceneDay1({ labels, onFinish }: { labels: string[]; onFinish: () => void }) {
-  const { tx, beep } = useSettings();
-  const [line, setLine] = useState(0);
-  const [online, setOnline] = useState(false);
-  return (
-    <SceneTransition sceneKey="day1" backdrop={<CommandCenter labels={labels} dim={!online} />}>
-      {!online ? (
-        <div className="flex h-full flex-col items-center justify-between gap-4 overflow-y-auto px-4 pb-6 pt-28 sm:pt-24">
-          <SuhailHolo pulse={line} />
-          <div className="w-full max-w-3xl">
-            <DialogueBox
-              speaker={tx(t("سهيل", "SUHAIL"))}
-              lines={SUHAIL_DAY1}
-              onLine={setLine}
-              onDone={() => {
-                beep("facility");
-                setOnline(true);
-              }}
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="flex h-full flex-col items-center justify-center gap-6 bg-space/70 px-4 text-center backdrop-blur-sm">
-          <p className="c7-online font-display text-4xl font-bold tracking-[0.2em] sm:text-7xl">{tx(CINE_UI.day1)}</p>
-          <p className="c7-online font-display text-2xl font-bold tracking-[0.4em] text-mint sm:text-4xl" style={{ animationDelay: "0.5s" }}>
-            ● {tx(CINE_UI.online)}
-          </p>
-          <ul className="flex flex-wrap justify-center gap-3">
-            {RESOURCE_ORDER.map((id, i) => (
-              <li key={id} className="stagger flex items-center gap-2 rounded-full border-2 px-4 py-2" style={{ ["--i" as string]: i + 8, borderColor: RESOURCES[id].color }}>
-                <span aria-hidden>{RESOURCES[id].icon}</span>
-                {tx(RESOURCES[id].name)} <span className="text-mint">✓</span>
-              </li>
-            ))}
-          </ul>
-          <Button size="lg" onClick={onFinish} autoFocus className="min-w-[min(100%,340px)]">
-            🚀 {tx(CINE_UI.start)}
-          </Button>
-        </div>
-      )}
+      <Modal open={story} onClose={() => setStory(false)} title={tx(STORY.title)} closeLabel={tx(CINE_UI.close)}>
+        <p className="font-display text-lg font-bold text-holo">{tx(STORY.lead)}</p>
+        <p className="mt-2 leading-relaxed">{tx(STORY.body)}</p>
+        <ul className="mt-3 flex flex-col gap-2">
+          {STORY.chapters.map((c, i) => (
+            <li key={i} className="rounded-xl bg-space/60 px-3 py-2">
+              {tx(c)}
+            </li>
+          ))}
+        </ul>
+        <Button variant="solar" className="mt-4 w-full" onClick={onStart}>
+          🚀 {tx(CINE_UI.startMission)}
+        </Button>
+      </Modal>
     </SceneTransition>
   );
 }
 
 /**
- * SCENES 01–07 of the cinematic introduction. Skippable at any time; subtitles always on;
- * sound and music optional (original procedural audio).
+ * The cinematic opening. `onStart` = the child chose "Start Mission" (goes into the existing game);
+ * `onSkip` = skipped (goes to the start menu).
  */
-export function CinematicIntro({ onFinish, onSkip }: { onFinish: () => void; onSkip: () => void }) {
+export function CinematicIntro({ onStart, onSkip }: { onStart: () => void; onSkip: () => void }) {
   const { tx, lang, set, sound, music, reducedMotion, beep } = useSettings();
   const [scene, setScene] = useState<SceneId>("space");
   const idx = SCENES.indexOf(scene);
-  const labels = RESOURCE_ORDER.map((r) => tx(RESOURCES[r].name));
+  // Browsers (and children) should never hear sound before the first tap or key press.
+  const [interacted, setInteracted] = useState(false);
+  useEffect(() => {
+    const mark = () => setInteracted(true);
+    window.addEventListener("pointerdown", mark, { once: true });
+    window.addEventListener("keydown", mark, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", mark);
+      window.removeEventListener("keydown", mark);
+    };
+  }, []);
+  const sfxOn = sound && interacted;
+  const musicOn = music && interacted;
 
   const go = useCallback(
     (s: SceneId) => {
-      beep("whoosh");
+      if (sfxOn) sfx("whoosh");
       setScene(s);
     },
-    [beep],
+    [sfxOn],
   );
   const next = useCallback(() => {
     const n = SCENES[idx + 1];
     if (n) go(n);
   }, [idx, go]);
 
-  // auto-advance the three establishing shots
+  // the three establishing shots advance by themselves
   useEffect(() => {
-    const d = AUTO[scene];
+    const d = SCENE_AUTO_MS[scene];
     if (!d) return;
-    const id = window.setTimeout(next, reducedMotion ? AUTO_REDUCED : d);
+    const id = window.setTimeout(next, reducedMotion ? SCENE_AUTO_REDUCED_MS : d);
     return () => window.clearTimeout(id);
   }, [scene, next, reducedMotion]);
 
-  // ambience + music
+  // ambience + music (original procedural audio), only after interaction
   useEffect(() => {
-    if (music) {
+    if (musicOn) {
       startAmbience();
       startMusic();
     } else {
       stopAmbience();
       stopMusic();
     }
-  }, [music]);
+  }, [musicOn]);
   useEffect(
     () => () => {
       stopAmbience();
@@ -357,40 +338,36 @@ export function CinematicIntro({ onFinish, onSkip }: { onFinish: () => void; onS
     [],
   );
   useEffect(() => {
-    if (scene === "space" && sound) radioStatic();
-  }, [scene, sound]);
+    if (scene === "space" && sfxOn) radioStatic();
+  }, [scene, sfxOn]);
 
-  // Escape skips; Enter/Space continues on auto scenes
+  // keyboard: Esc skips; Enter / → continues on the self-running scenes
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onSkip();
+      else if ((e.key === "Enter" || e.key === "ArrowRight" || e.key === "ArrowLeft") && SCENE_AUTO_MS[scene] && !(e.target instanceof HTMLButtonElement)) next();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onSkip]);
+  }, [onSkip, next, scene]);
 
-  const pill = "min-h-10 rounded-full border border-holo/40 bg-space/70 px-3 py-1.5 text-sm backdrop-blur hover:bg-holo/15 aria-pressed:border-holo aria-pressed:bg-holo/20";
+  const pill = "min-h-11 rounded-full border border-holo/40 bg-space/70 px-3 py-1.5 text-sm backdrop-blur hover:bg-holo/15 aria-pressed:border-holo aria-pressed:bg-holo/20";
 
   return (
-    <div className="fixed inset-0 z-50 bg-black text-lunar" role="region" aria-roledescription="cinematic" aria-label="SPACE COMMANDER — Operation Moonlight">
+    <div className="fixed inset-0 z-50 bg-black text-lunar" role="region" aria-roledescription="cinematic" aria-label="SPACE COMMANDER — Operation Moonlight" data-scene={scene}>
       {scene === "space" && <SceneSpace />}
-      {scene === "base" && <SceneBase />}
-      {scene === "command" && <SceneCommand labels={labels} />}
-      {scene === "suhail" && <SceneSuhail labels={labels} onDone={next} />}
-      {scene === "commander" && <SceneCommander onNext={next} />}
-      {scene === "explore" && <SceneExplore onNext={next} />}
-      {scene === "day1" && <SceneDay1 labels={labels} onFinish={onFinish} />}
+      {scene === "approach" && <SceneApproach />}
+      {scene === "alert" && <SceneAlert audio={sfxOn} />}
+      {scene === "suhail" && <SceneSuhail onDone={next} audio={sfxOn} />}
+      {scene === "crew" && <SceneCrew onDone={next} />}
+      {scene === "commander" && <SceneCommander onStart={onStart} audio={sfxOn} />}
 
       {/* top bar: progress, audio, language, skip */}
       <div className="absolute inset-x-0 top-0 z-30 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-b from-black/80 to-transparent px-3 py-3 sm:px-6">
         <div className="flex items-center gap-2">
           <ol className="flex gap-1.5" aria-label={tx(CINE_UI.scene)}>
             {SCENES.map((s, i) => (
-              <li
-                key={s}
-                aria-current={i === idx ? "step" : undefined}
-                className={`h-2 rounded-full transition-all ${i === idx ? "w-8 bg-holo" : i < idx ? "w-2 bg-holo/70" : "w-2 bg-moon/30"}`}
-              >
+              <li key={s} aria-current={i === idx ? "step" : undefined} className={`h-2 rounded-full transition-all ${i === idx ? "w-8 bg-holo" : i < idx ? "w-2 bg-holo/70" : "w-2 bg-moon/30"}`}>
                 <span className="sr-only">
                   {i + 1}. {tx(SCENE_NAMES[s])}
                 </span>
@@ -415,17 +392,24 @@ export function CinematicIntro({ onFinish, onSkip }: { onFinish: () => void; onS
         </div>
       </div>
 
-      {/* sound hint on the first scene */}
-      {scene === "space" && !sound && !music && (
+      {/* invite sound on the first shots (never starts it automatically) */}
+      {(scene === "space" || scene === "approach") && !sound && !music && (
         <div className="absolute inset-x-0 top-20 z-30 flex justify-center px-4">
-          <button className="panel anim-rise px-4 py-2 text-sm hover:bg-holo/10" onClick={() => set({ sound: true, music: true })}>
+          <button
+            className="panel anim-rise min-h-11 px-4 py-2 text-sm hover:bg-holo/10"
+            onClick={() => {
+              setInteracted(true);
+              set({ sound: true, music: true });
+              beep("ok");
+            }}
+          >
             {tx(CINE_UI.soundHint)}
           </button>
         </div>
       )}
 
-      {/* continue on the auto-advancing scenes */}
-      {AUTO[scene] && (
+      {/* continue on the self-running scenes */}
+      {SCENE_AUTO_MS[scene] && (
         <div className="absolute inset-x-0 bottom-6 z-30 flex justify-center">
           <Button variant="ghost" onClick={next} className="bg-space/60 backdrop-blur">
             {tx(CINE_UI.next)} ▶

@@ -1,6 +1,7 @@
 "use client";
 import { LEVEL_TEXT, RESOURCES, levelOf, type ResourceId } from "@/lib/mission";
 import { useSettings } from "../settings";
+import type { ResourceChange } from "@/lib/game/feedback";
 
 /**
  * One resource readout. `bar` is the compact HUD meter; `tile` is the large card
@@ -13,12 +14,15 @@ export function ResourceIndicator({
   pct,
   variant = "bar",
   delta,
+  change,
 }: {
   id: ResourceId;
   value: number;
   pct: number;
   variant?: "bar" | "tile";
   delta?: number;
+  /** Phase 4: a fresh change to show (flash + ▲/▼ amount) */
+  change?: ResourceChange;
 }) {
   const { tx } = useSettings();
   const r = RESOURCES[id];
@@ -53,12 +57,18 @@ export function ResourceIndicator({
     );
   }
 
+  const chg = change ? `${change.direction === "up" ? "▲ +" : "▼ −"}${Math.abs(Math.round(change.delta))}${r.unit === "%" ? "%" : ""}` : null;
   return (
-    <div className="min-w-0 flex-1" role="meter" aria-label={tx(r.name)} aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-valuetext={label}>
+    <div
+      key={change ? `${change.id}-${change.delta}` : "steady"}
+      className={`relative min-w-0 flex-1 ${change ? (change.direction === "down" ? "res-down" : "res-up") : ""}`}
+      data-change={change?.direction}
+      role="meter"
+      aria-label={tx(r.name)} aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-valuetext={label}>
       <div className="mb-1 flex items-center justify-between gap-2 text-xs sm:text-sm">
         <span className="truncate">
           <span aria-hidden>{r.icon} </span>
-          {tx(r.name)}
+          <span className="hidden sm:inline">{tx(r.name)}</span>
         </span>
         <span className="whitespace-nowrap font-display font-bold tabular-nums" dir="ltr">
           {shown}
@@ -66,8 +76,20 @@ export function ResourceIndicator({
         </span>
       </div>
       <div className="h-2.5 overflow-hidden rounded-full bg-space/80">
-        <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${Math.max(2, Math.min(100, pct))}%`, background: color }} />
+        <div
+          className={`h-full rounded-full transition-[width] duration-700 ${level === "crit" ? "anim-glow" : ""}`}
+          style={{ width: `${Math.max(2, Math.min(100, pct))}%`, background: color }}
+        />
       </div>
+      {chg && (
+        <span
+          className={`delta-float pointer-events-none absolute -top-3 end-0 rounded-full px-1.5 font-display text-xs font-bold ${change!.direction === "down" ? "bg-coral text-space" : "bg-mint text-space"}`}
+          dir="ltr"
+          aria-hidden
+        >
+          {chg}
+        </span>
+      )}
     </div>
   );
 }

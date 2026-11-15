@@ -12,7 +12,7 @@ import { Button } from "../ui";
 export function SpeakerAvatar({ who, size = 72, speaking = false }: { who: Line["who"]; size?: number; speaking?: boolean }) {
   return (
     <span className={`relative inline-block shrink-0 rounded-full ${speaking ? "speaking" : ""}`} style={{ width: size, height: size }}>
-      {who === "suhail" ? <SuhailBot mood="normal" size={size} /> : <Portrait id={who} size={size} />}
+      {who === "suhail" ? <SuhailBot mood="explaining" size={size} /> : <Portrait id={who} size={size} />}
     </span>
   );
 }

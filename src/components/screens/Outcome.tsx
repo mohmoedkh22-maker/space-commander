@@ -7,7 +7,7 @@ import { ENDINGS, UI, t } from "@/lib/i18n";
 import { LunarBase, facilityStatus } from "../LunarBase";
 import { useSettings } from "../settings";
 import { SuhailSays } from "../Suhail";
-import { Button, Delta, Panel, ScreenTitle } from "../ui";
+import { Button, Delta, Panel, ScreenTitle, StickyAction } from "../ui";
 import { BaseFrame, CrewReports } from "../experience/Journey";
 import { conceptsExplored } from "@/lib/game/journey";
 import { START } from "@/lib/game/config";
@@ -52,9 +52,11 @@ export function OutcomeScreen({ ending, state, onLab }: { ending: EndingId; stat
             mood="curious"
             text={t("انتظر… هل تعرف السؤال الذي يجعل العلماء يكتشفون أشياء جديدة؟ ماذا لو؟", "Wait… do you know the question that helps scientists discover new things? What if?")}
           />
-          <Button variant="violet" onClick={onLab} autoFocus>
-            🧪 {tx(UI.openLab)}
-          </Button>
+          <StickyAction>
+            <Button variant="violet" size="lg" onClick={onLab} autoFocus className="w-full lg:w-auto">
+              🧪 {tx(UI.openLab)}
+            </Button>
+          </StickyAction>
         </div>
       </div>
     </main>
